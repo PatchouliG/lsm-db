@@ -54,4 +54,14 @@ func TestNewRecordIterator(t *testing.T) {
 
 	assert.False(t, ri.hasNext())
 
+	res, ok := ri.findBy(r2.getKey())
+	assert.True(t, ok)
+	assert.Equal(t, r2, res)
+
+	_, ok = ri.findBy(common.NewKey("not found"))
+	assert.False(t, ok)
+
+	// check position reset
+	assert.False(t, ri.hasNext())
+
 }

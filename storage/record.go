@@ -4,6 +4,7 @@ import (
 	"encoding/binary"
 	"errors"
 	"github.com/PatchouliG/wisckey-db/common"
+	"log"
 )
 
 type Record struct {
@@ -101,14 +102,32 @@ func NewRecordIterator(data []byte) RecordIterator {
 	return RecordIterator{data, 0}
 }
 
-func (ri *RecordIterator) next() (Record, error) {
+func (ri *RecordIterator) next() (Record, bool) {
 	if !ri.hasNext() {
-		return Record{}, errors.New("no more record")
+		return Record{}, false
 	}
 	res, size := NewRecordFromByte(ri.data[ri.position:])
 	ri.position += size
-	return res, nil
+	return res, true
 }
+
 func (ri *RecordIterator) hasNext() bool {
 	return ri.position < len(ri.data)
+}
+
+func (ri *RecordIterator) findBy(key common.Key) (Record, bool) {
+	lastPosition := ri.position
+	defer func() { ri.position = lastPosition }()
+
+	ri.position = 0
+	for ri.hasNext() {
+		r, ok := ri.next()
+		if !ok {
+			log.Panic(ok)
+		}
+		if r.key == key {
+			return r, true
+		}
+	}
+	return Record{}, false
 }
