@@ -20,8 +20,8 @@ func TestDataBLockAppend(t *testing.T) {
 
 }
 func TestDataBLockEncodeAndDecode(t *testing.T) {
-	r1 := NewRecord(common.NewKey("key1"), common.NewValue("value1"))
-	r2 := NewRecord(common.NewKey("key2"), common.NewValue("value2"))
+	r1 := NewRecord(common.NewKey("key123sdddddddddd23"), common.NewValue("value1"))
+	r2 := NewRecord(common.NewKey("key2"), common.NewValue("value21234sd32r2rsdd"))
 	db := newDataBlock()
 	db.appendData(r1.encode())
 	db.appendData(r2.encode())
@@ -29,8 +29,15 @@ func TestDataBLockEncodeAndDecode(t *testing.T) {
 
 	fromByte := newDataBlockFromByte(data)
 	dataDecoded := fromByte.GetData()
-	r1Decoded, size := NewRecordFromByte(dataDecoded)
-	assert.Equal(t, r1Decoded, r1)
-	r2Decoded, size := NewRecordFromByte(dataDecoded[size:])
-	assert.Equal(t, r2Decoded, r2)
+	ri := NewRecordIterator(dataDecoded)
+	assert.True(t, ri.hasNext())
+	r1Decoded, err := ri.next()
+	assert.Nil(t, err)
+	assert.Equal(t, r1, r1Decoded)
+	assert.True(t, ri.hasNext())
+	r2Decoded, err := ri.next()
+	assert.Nil(t, err)
+	assert.Equal(t, r2, r2Decoded)
+
+	assert.False(t, ri.hasNext())
 }
