@@ -73,3 +73,8 @@ func TestNewRecordIterator(t *testing.T) {
 	assert.False(t, ri.HasNext())
 
 }
+
+func TestStringer(t *testing.T) {
+	a := NewRecord(NewKey("key"), NewValue("value"))
+	assert.Equal(t, "{key:{key}, isDelete: false,value: {value}}", a.String())
+}

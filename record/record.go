@@ -3,6 +3,7 @@ package record
 import (
 	"encoding/binary"
 	"errors"
+	"fmt"
 )
 
 type Record struct {
@@ -146,4 +147,8 @@ func (ri *Reader) FindBy(key Key) (Record, bool) {
 		}
 	}
 	return Record{}, false
+}
+
+func (r *Record) String() string {
+	return fmt.Sprintf("{key:%s, isDelete: %t,value: %s}", r.key, r.delete, r.value)
 }
