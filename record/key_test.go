@@ -14,7 +14,7 @@ func TestEncodeDecode(t *testing.T) {
 
 func TestKeyReaderAndWriter(t *testing.T) {
 	k := NewKey("key_test")
-	kw := newKeyWriter()
+	kw := NewKeyWriter()
 	number := 10
 	for i := 0; i < number; i++ {
 		kw.Writer(k)

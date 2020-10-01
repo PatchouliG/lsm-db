@@ -15,7 +15,7 @@ func NewKey(k string) Key {
 	return Key{k}
 }
 
-func (k *Key) Value() string {
+func (k Key) Value() string {
 	return k.s
 }
 
@@ -25,7 +25,7 @@ func NewKeyFromByte(data []byte) (Key, uint32) {
 	return res, 4 + size
 }
 
-func (k *Key) Encode() []byte {
+func (k Key) Encode() []byte {
 	size := len(k.s)
 	sizeByte := make([]byte, 4)
 	binary.BigEndian.PutUint32(sizeByte, uint32(size))
@@ -36,7 +36,7 @@ type KeyWriter struct {
 	data []byte
 }
 
-func newKeyWriter() KeyWriter {
+func NewKeyWriter() KeyWriter {
 	return KeyWriter{}
 }
 
@@ -45,7 +45,9 @@ func (kw *KeyWriter) Writer(k Key) {
 }
 
 func (kw *KeyWriter) Byte() []byte {
-	return kw.data
+	res := kw.data
+	kw.data = nil
+	return res
 }
 
 type KeyReader struct {

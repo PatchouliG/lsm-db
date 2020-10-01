@@ -17,7 +17,7 @@ func NewRecord(key Key, value Value) Record {
 }
 
 func NewDeleteRecord(key Key) Record {
-	return Record{key, "", true}
+	return Record{key, Value{}, true}
 }
 
 // key_size uint32
@@ -44,7 +44,7 @@ func (r *Record) Encode() (res []byte) {
 	res = append(res, isDelete)
 
 	valueSize := make([]byte, 4)
-	valueData := []byte(r.value)
+	valueData := []byte(r.value.Value())
 
 	binary.BigEndian.PutUint32(valueSize, uint32(len(valueData)))
 
@@ -76,17 +76,17 @@ func NewRecordFromByte(data []byte) (r Record, byteSize int) {
 	return
 }
 
-func (r *Record) Key() Key {
+func (r Record) Key() Key {
 	return r.key
 }
 
-func (r *Record) IsDeleted() bool {
+func (r Record) IsDeleted() bool {
 	return r.delete
 }
 
-func (r *Record) Value() (Value, error) {
+func (r Record) Value() (Value, error) {
 	if r.delete {
-		return "", errors.New("is deleted")
+		return Value{}, errors.New("is deleted")
 	}
 	return r.value, nil
 }
