@@ -2,7 +2,6 @@ package record
 
 import (
 	"encoding/binary"
-	"errors"
 	"fmt"
 )
 
@@ -85,11 +84,11 @@ func (r Record) IsDeleted() bool {
 	return r.delete
 }
 
-func (r Record) Value() (Value, error) {
+func (r Record) Value() (Value, bool) {
 	if r.delete {
-		return Value{}, errors.New("is deleted")
+		return Value{}, false
 	}
-	return r.value, nil
+	return r.value, true
 }
 
 func FirstRecord(data []byte) (Record, bool) {

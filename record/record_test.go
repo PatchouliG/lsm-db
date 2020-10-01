@@ -12,8 +12,8 @@ func TestRecordEncodeAndDecode(t *testing.T) {
 	data := r.Encode()
 	m, size := NewRecordFromByte(data)
 	assert.Equal(t, m.Key(), key)
-	mValue, err := m.Value()
-	assert.Nil(t, err)
+	mValue, ok := m.Value()
+	assert.True(t, ok)
 	assert.Equal(t, value, mValue, value)
 	assert.Equal(t, len(data), int(size))
 }
@@ -24,8 +24,8 @@ func TestRecordBasic(t *testing.T) {
 	assert.False(t, r.IsDeleted())
 
 	assert.Equal(t, r.Key(), key)
-	mValue, err := r.Value()
-	assert.Nil(t, err)
+	mValue, ok := r.Value()
+	assert.True(t, ok)
 	assert.Equal(t, value, mValue, value)
 
 	dr := NewDeleteRecord(key)
@@ -77,4 +77,9 @@ func TestNewRecordIterator(t *testing.T) {
 func TestStringer(t *testing.T) {
 	a := NewRecord(NewKey("key"), NewValue("value"))
 	assert.Equal(t, "{key:{key}, isDelete: false,value: {value}}", a.String())
+}
+
+func TestEmptyReader(t *testing.T) {
+	a := Reader{}
+	assert.False(t, a.HasNext())
 }
