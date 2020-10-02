@@ -2,6 +2,7 @@ package record
 
 import (
 	"github.com/stretchr/testify/assert"
+	"math/rand"
 	"testing"
 )
 
@@ -10,7 +11,8 @@ func TestRecordEncodeAndDecode(t *testing.T) {
 	value := NewValue("value")
 	r := NewRecordStr("record", "value")
 	data := r.Encode()
-	m, size := NewRecordFromByte(data)
+	m, size, ok := NewRecordFromByte(data)
+	assert.True(t, ok)
 	assert.Equal(t, m.Key(), key)
 	mValue, ok := m.Value()
 	assert.True(t, ok)
@@ -34,7 +36,7 @@ func TestRecordBasic(t *testing.T) {
 func TestNewRecordIterator(t *testing.T) {
 	r1 := NewRecord(NewKey("1"), NewValue("2"))
 	r2 := NewRecord(NewKey("2"), NewValue("3"))
-	r3 := NewRecord(NewKey("123234"), NewValue("123dssssssre2"))
+	r3 := NewRecord(NewKey("123234"), NewValue("1232"))
 
 	//dr := NewDeleteRecord(NewKey("delete"))
 
@@ -82,4 +84,44 @@ func TestStringer(t *testing.T) {
 func TestEmptyReader(t *testing.T) {
 	a := Reader{}
 	assert.False(t, a.HasNext())
+}
+
+func TestWriter_Len(t *testing.T) {
+	w := NewWriter()
+	a := NewRecord(NewKey("key"), NewValue("value"))
+	w.Write(a)
+	assert.Equal(t, len(a.Encode()), w.Len())
+}
+func TestReadWithCorruptData(t *testing.T) {
+	w := NewWriter()
+	a := NewRecord(NewKey("key"), NewValue("value"))
+	w.Write(a)
+	data := w.Byte()
+	appendRandomDataAndCheck(t, data, a)
+
+}
+
+func appendRandomDataAndCheck(t *testing.T, data []byte, a Record) {
+	for i := 0; i < 100; i++ {
+		// append corrupt data
+		dataAppended := append(data, randomByteInRandomLength(100)...)
+		r := NewRecordReader(dataAppended)
+		i, ok := r.Next()
+		assert.True(t, ok)
+		assert.Equal(t, a, i)
+
+		_, ok = r.Next()
+		assert.False(t, ok)
+	}
+}
+
+var randomByte = []byte("2342sdfsdf124sdafasef3dsf2r233333dsfds1334qt")
+
+func randomByteInRandomLength(length int) []byte {
+	n := rand.Intn(length)
+	res := make([]byte, n)
+	for i := 0; i < len(res); i++ {
+		res[i] = randomByte[rand.Intn(len(randomByte))]
+	}
+	return res[:]
 }
