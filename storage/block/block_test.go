@@ -6,8 +6,6 @@ import (
 	"testing"
 )
 
-var sizeLimit = 300
-
 func TestDataBLockAppend(t *testing.T) {
 
 	a := make([]byte, DataBlockSizeInByte/2)
@@ -28,6 +26,8 @@ func TestDataBLockEncodeAndDecode(t *testing.T) {
 	res = w.Write(r2.Encode())
 	assert.True(t, res)
 	data := w.Byte()
+
+	assert.Equal(t, DataBlockSizeInByte, len(data))
 
 	reader := NewReader(data)
 	dataDecoded := reader.Byte()

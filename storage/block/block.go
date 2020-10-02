@@ -18,8 +18,8 @@ type Writer struct {
 	position int
 }
 
-func NewWriter() Writer {
-	return Writer{make([]byte, DataBlockSizeInByte), 0}
+func NewWriter() *Writer {
+	return &Writer{make([]byte, DataBlockSizeInByte), 0}
 }
 
 // return false if reach size limit
