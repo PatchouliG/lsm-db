@@ -104,8 +104,8 @@ type Writer struct {
 	data []byte
 }
 
-func NewWriter() Writer {
-	return Writer{}
+func NewWriter() *Writer {
+	return &Writer{}
 }
 
 func (w *Writer) Write(r Record) {
@@ -121,8 +121,8 @@ type Reader struct {
 	position int
 }
 
-func NewRecordReader(data []byte) Reader {
-	return Reader{data, 0}
+func NewRecordReader(data []byte) *Reader {
+	return &Reader{data, 0}
 }
 
 func (ri *Reader) Next() (Record, bool) {

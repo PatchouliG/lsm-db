@@ -15,7 +15,7 @@ func TestRecordEncodeAndDecode(t *testing.T) {
 	mValue, ok := m.Value()
 	assert.True(t, ok)
 	assert.Equal(t, value, mValue, value)
-	assert.Equal(t, len(data), int(size))
+	assert.Equal(t, len(data), size)
 }
 func TestRecordBasic(t *testing.T) {
 	key := NewKey("record")
