@@ -16,6 +16,10 @@ func NewRecord(key Key, value Value) Record {
 	return Record{key, value, false}
 }
 
+func NewRecordStr(key string, value string) Record {
+	return NewRecord(NewKey(key), NewValue(value))
+}
+
 func NewDeleteRecord(key Key) Record {
 	return Record{key, Value{}, true}
 }

@@ -8,7 +8,7 @@ import (
 func TestRecordEncodeAndDecode(t *testing.T) {
 	key := NewKey("record")
 	value := NewValue("value")
-	r := NewRecord(key, value)
+	r := NewRecordStr("record", "value")
 	data := r.Encode()
 	m, size := NewRecordFromByte(data)
 	assert.Equal(t, m.Key(), key)
