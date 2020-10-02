@@ -32,7 +32,11 @@ func (w *Writer) Write(data []byte) bool {
 	return true
 }
 
+// return empty byte if no data
 func (w *Writer) Byte() []byte {
+	if w.data == nil {
+		return make([]byte, 0)
+	}
 	binary.BigEndian.PutUint32(w.data[DataBlockSizeInByte-dataBlockMetaDataSize:], uint32(w.position))
 	res := w.data
 	w.data = nil
