@@ -94,19 +94,6 @@ func TestLogFileWriteAndRead(t *testing.T) {
 	assert.False(t, ok)
 }
 
-func TestLogFileCompaction(t *testing.T) {
-	var lf = generateLogFile(t, 1, 9)
-	a, _ := generateOrderedSStableFile(t, 2, 4)
-	b, _ := generateOrderedSStableFile(t, 5, 6)
-	c, _ := generateOrderedSStableFile(t, 7, 9)
-	res := CompactionLogFile(lf, []*Reader{a, b, c}, randFileNameGenerator(t))
-	for _, r := range res {
-		checkOrder(t, r)
-		r.Reset()
-		checkKV(t, r)
-	}
-}
-
 func createTestFileName(t *testing.T) *os.File {
 	file, err := ioutil.TempFile("", "TestSstableWriteAndRead")
 	assert.Nil(t, err)
@@ -146,12 +133,6 @@ func checkKV(t *testing.T, sstr *Reader) {
 		assert.True(t, ok)
 		assert.Equal(t, "value_"+r.Key().Value(), value.Value())
 	}
-}
-
-// test write and read sst file performance
-// todo
-func todoTestPerformance(t *testing.T) {
-
 }
 
 func generateLogFile(t *testing.T, startKey int, endKey int) *logFileReader {

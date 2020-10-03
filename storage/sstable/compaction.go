@@ -13,14 +13,6 @@ func Compaction(rs []*Reader, outputFileChan chan string) []*Reader {
 	}
 	return compaction(ri, outputFileChan)
 }
-func CompactionLogFile(lf *logFileReader, rs []*Reader, outputFileChan chan string) []*Reader {
-	var ri []record.Iterator
-	for _, reader := range rs {
-		ri = append(ri, reader)
-	}
-	ri = append(ri, lf)
-	return compaction(ri, outputFileChan)
-}
 
 // return output sstable file reader
 func compaction(ris []record.Iterator, outputFileChan chan string) []*Reader {

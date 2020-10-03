@@ -95,6 +95,7 @@ func newLogFileReader(file string) *logFileReader {
 	return &logFileReader{f, &record.Reader{}, 0}
 }
 
+// todo use for restore memtable after crash
 func (l *logFileReader) Next() (record.Record, bool) {
 	res, ok := l.rr.Next()
 	if !ok {
