@@ -8,7 +8,7 @@
 - [ ] range query
 
 ## benchmark
-2M 顺序写 135M/s
+todo compare with leveldb
 
 
 
