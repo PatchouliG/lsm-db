@@ -16,7 +16,7 @@ type logFileWriter struct {
 	rw *record.Writer
 	f  *os.File
 	// current block number write to file
-	blockNumber int
+	blockNumberWritten int
 }
 
 func NewLogFileWriter(fileName string) *logFileWriter {
@@ -34,7 +34,7 @@ func (l *logFileWriter) Write(r record.Record) bool {
 	if l.rw.Len()+len(data) >= block.MaxBlockSize() {
 		l.writeOneBlockDataToFile()
 
-		if l.blockNumber == logFileSizeLimit/block.DataBlockSizeInByte {
+		if l.blockNumberWritten == logFileSizeLimit/block.DataBlockSizeInByte {
 			err := l.f.Sync()
 			if err != nil {
 				log.WithField("err", err).Panic("file sync fail")
@@ -71,7 +71,7 @@ func (l *logFileWriter) writeOneBlockDataToFile() {
 			Panic("sync file fail")
 	}
 
-	l.blockNumber++
+	l.blockNumberWritten++
 	l.rw = record.NewWriter()
 }
 

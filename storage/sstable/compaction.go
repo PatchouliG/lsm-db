@@ -7,14 +7,14 @@ import (
 )
 
 func Compaction(rs []*Reader, outputFileChan chan string) []*Reader {
-	var ri []RecordIterator
+	var ri []record.Iterator
 	for _, reader := range rs {
 		ri = append(ri, reader)
 	}
 	return compaction(ri, outputFileChan)
 }
 func CompactionLogFile(lf *logFileReader, rs []*Reader, outputFileChan chan string) []*Reader {
-	var ri []RecordIterator
+	var ri []record.Iterator
 	for _, reader := range rs {
 		ri = append(ri, reader)
 	}
@@ -23,7 +23,7 @@ func CompactionLogFile(lf *logFileReader, rs []*Reader, outputFileChan chan stri
 }
 
 // return output sstable file reader
-func compaction(ris []RecordIterator, outputFileChan chan string) []*Reader {
+func compaction(ris []record.Iterator, outputFileChan chan string) []*Reader {
 	generator := newRecordGenerator(ris)
 
 	sstw := getSStw(outputFileChan)
@@ -71,11 +71,11 @@ func getSStw(outputFileChan chan string) *Writer {
 
 // output next min key record
 type recordGenerator struct {
-	readers []RecordIterator
+	readers []record.Iterator
 	rh      recordHeap
 }
 
-func newRecordGenerator(readers []RecordIterator) recordGenerator {
+func newRecordGenerator(readers []record.Iterator) recordGenerator {
 	res := recordGenerator{}
 	for _, reader := range readers {
 		r, ok := reader.Next()
@@ -94,7 +94,7 @@ func (g *recordGenerator) next() (record.Record, bool) {
 	}
 	r := (heap.Pop(&g.rh)).(recordWithReader)
 
-	res, reader := r.Record, r.RecordIterator
+	res, reader := r.Record, r.Iterator
 	nextRecord, ok := reader.Next()
 
 	// delete reader from recordGenerator if no more record
@@ -113,7 +113,7 @@ func (g *recordGenerator) next() (record.Record, bool) {
 
 type recordWithReader struct {
 	record.Record
-	RecordIterator
+	record.Iterator
 }
 
 type recordHeap struct {
