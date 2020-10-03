@@ -11,7 +11,7 @@ import "encoding/binary"
 
 // 32 Kb
 const DataBlockSizeInByte = 32 * 1024
-const dataBlockMetaDataSize = 4
+const DataBlockMetaDataSize = 4
 
 type Writer struct {
 	data     []byte
@@ -22,9 +22,13 @@ func NewWriter() *Writer {
 	return &Writer{make([]byte, DataBlockSizeInByte), 0}
 }
 
+func MaxBlockSize() int {
+	return DataBlockSizeInByte - DataBlockMetaDataSize
+}
+
 // return false if reach size limit
 func (w *Writer) Write(data []byte) bool {
-	if uint32(w.position)+uint32(len(data)) >= DataBlockSizeInByte-dataBlockMetaDataSize {
+	if uint32(w.position)+uint32(len(data)) >= uint32(MaxBlockSize()) {
 		return false
 	}
 	copy(w.data[w.position:], data)
@@ -37,7 +41,7 @@ func (w *Writer) Byte() []byte {
 	if w.data == nil {
 		return make([]byte, 0)
 	}
-	binary.BigEndian.PutUint32(w.data[DataBlockSizeInByte-dataBlockMetaDataSize:], uint32(w.position))
+	binary.BigEndian.PutUint32(w.data[DataBlockSizeInByte-DataBlockMetaDataSize:], uint32(w.position))
 	res := w.data
 	w.data = nil
 	return res
@@ -52,6 +56,6 @@ func NewReader(data []byte) Reader {
 }
 
 func (r *Reader) Byte() []byte {
-	size := binary.BigEndian.Uint32(r.data[DataBlockSizeInByte-dataBlockMetaDataSize:])
+	size := binary.BigEndian.Uint32(r.data[DataBlockSizeInByte-DataBlockMetaDataSize:])
 	return r.data[:size]
 }
