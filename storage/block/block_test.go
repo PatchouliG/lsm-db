@@ -32,14 +32,13 @@ func TestDataBLockEncodeAndDecode(t *testing.T) {
 	reader := NewReader(data)
 	dataDecoded := reader.Byte()
 	ri := record.NewRecordReader(dataDecoded)
-	assert.True(t, ri.HasNext())
 	r1Decoded, ok := ri.Next()
 	assert.True(t, ok)
 	assert.Equal(t, r1, r1Decoded)
-	assert.True(t, ri.HasNext())
 	r2Decoded, ok := ri.Next()
 	assert.True(t, ok)
 	assert.Equal(t, r2, r2Decoded)
 
-	assert.False(t, ri.HasNext())
+	_, ok = ri.Next()
+	assert.False(t, ok)
 }

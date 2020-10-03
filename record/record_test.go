@@ -53,8 +53,6 @@ func TestNewRecordIterator(t *testing.T) {
 	assert.True(t, ok)
 	assert.Equal(t, r1, rf)
 
-	assert.Equal(t, ri.HasNext(), true)
-
 	res, _ := ri.Next()
 	assert.Equal(t, r1, res)
 	res, _ = ri.Next()
@@ -62,7 +60,8 @@ func TestNewRecordIterator(t *testing.T) {
 	res, _ = ri.Next()
 	assert.Equal(t, r3, res)
 
-	assert.False(t, ri.HasNext())
+	_, ok = ri.Next()
+	assert.False(t, ok)
 
 	res, ok = ri.FindBy(r2.Key())
 	assert.True(t, ok)
@@ -72,7 +71,8 @@ func TestNewRecordIterator(t *testing.T) {
 	assert.False(t, ok)
 
 	// check position reset
-	assert.False(t, ri.HasNext())
+	_, ok = ri.Next()
+	assert.False(t, ok)
 
 }
 
@@ -83,7 +83,8 @@ func TestStringer(t *testing.T) {
 
 func TestEmptyReader(t *testing.T) {
 	a := Reader{}
-	assert.False(t, a.HasNext())
+	_, ok := a.Next()
+	assert.False(t, ok)
 }
 
 func TestWriter_Len(t *testing.T) {

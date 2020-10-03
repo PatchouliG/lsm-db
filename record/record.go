@@ -165,9 +165,6 @@ func NewRecordReader(data []byte) *Reader {
 }
 
 func (ri *Reader) Next() (Record, bool) {
-	if !ri.HasNext() {
-		return Record{}, false
-	}
 	res, size, ok := NewRecordFromByte(ri.data[ri.position:])
 	if !ok {
 		return Record{}, false
@@ -176,22 +173,20 @@ func (ri *Reader) Next() (Record, bool) {
 	return res, true
 }
 
-func (ri *Reader) HasNext() bool {
-	return ri.position < len(ri.data)
-}
-
 func (ri *Reader) FindBy(key Key) (Record, bool) {
 	lastPosition := ri.position
 	defer func() { ri.position = lastPosition }()
 
 	ri.position = 0
-	for ri.HasNext() {
-		r, _ := ri.Next()
+	for {
+		r, ok := ri.Next()
+		if !ok {
+			return Record{}, false
+		}
 		if r.key == key {
 			return r, true
 		}
 	}
-	return Record{}, false
 }
 
 func (r *Record) String() string {
