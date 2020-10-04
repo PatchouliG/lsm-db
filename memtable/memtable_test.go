@@ -2,16 +2,29 @@ package memtable
 
 import (
 	"github.com/PatchouliG/wisckey-db/record"
-	"github.com/PatchouliG/wisckey-db/transaction"
+	"github.com/PatchouliG/wisckey-db/snapshot"
 	"github.com/stretchr/testify/assert"
 	"testing"
 )
 
-func TestMemtable(t *testing.T) {
+var sg chan snapshot.Id
+
+func init() {
+	sg = make(chan snapshot.Id)
+	id := 0
+	go func() {
+		for {
+			sg <- snapshot.MockId(int64(id))
+			id++
+		}
+	}()
+}
+
+func TestMemtableBasic(t *testing.T) {
 	mt := NewMemtable()
-	a := NewRecordWithTransaction(record.NewRecordStr("key1", "value1"), transaction.MockId(1))
-	b := NewRecordWithTransaction(record.NewRecordStr("key2", "value2"), transaction.MockId(2))
-	c := NewRecordWithTransaction(record.NewRecordStr("key2", "value2"), transaction.MockId(3))
+	a := NewRecordWithTransaction(record.NewRecordStr("key1", "value1"), <-sg)
+	b := NewRecordWithTransaction(record.NewRecordStr("key2", "value2"), <-sg)
+	c := NewRecordWithTransaction(record.NewRecordStr("key2", "value2"), <-sg)
 	mt.Put(a)
 	mt.Put(b)
 
@@ -31,46 +44,54 @@ func TestMemtable(t *testing.T) {
 	assert.False(t, ok)
 
 	// test delete get found
-	ok = mt.Delete(record.NewKey("not exits"))
+	ok = mt.Delete(record.NewKey("not exits"), <-sg)
 	assert.False(t, ok)
 
 	// test delete success
-	ok = mt.Delete(a.Key())
+	ok = mt.Delete(a.Key(), <-sg)
 	assert.True(t, ok)
 
 	_, ok = mt.Get(a.Key())
 	assert.False(t, ok)
 
 }
-func TestClone(t *testing.T) {
+
+func TestSnapshotOperation(t *testing.T) {
 	mt := NewMemtable()
-	a := NewRecordWithTransaction(record.NewRecordStr("key1", "value1"), transaction.MockId(1))
-	b := NewRecordWithTransaction(record.NewRecordStr("key2", "value2"), transaction.MockId(2))
+	oldId := <-sg
+	a := NewRecordWithTransaction(record.NewRecordStr("key1", "value1"), <-sg)
+	b := NewRecordWithTransaction(record.NewRecordStr("key1", "value2"), <-sg)
+
 	mt.Put(a)
 	mt.Put(b)
 
-	mtCloned := mt.Clone()
-
-	res, ok := mtCloned.Get(a.Key())
-	assert.True(t, ok)
-	assert.Equal(t, a, res)
-
-	res, ok = mtCloned.Get(b.Key())
+	res, ok := mt.GetWithSnapshot(b.Key(), b.Id)
 	assert.True(t, ok)
 	assert.Equal(t, b, res)
 
-	_, ok = mtCloned.Get(record.NewKey("not exits"))
-	assert.False(t, ok)
-
-	// delete cloned memtable won't change original memtable
-	ok = mtCloned.Delete(a.Key())
-	assert.True(t, ok)
-
-	_, ok = mtCloned.Get(a.Key())
-	assert.False(t, ok)
-
-	res, ok = mt.Get(a.Key())
+	res, ok = mt.GetWithSnapshot(a.Key(), a.Id)
 	assert.True(t, ok)
 	assert.Equal(t, a, res)
+
+	res, ok = mt.GetWithSnapshot(b.Key(), <-sg)
+	assert.True(t, ok)
+	assert.Equal(t, b, res)
+
+	// test old snapshot id
+	_, ok = mt.GetWithSnapshot(b.Key(), oldId)
+	assert.False(t, ok)
+
+	// test not exits
+	_, ok = mt.GetWithSnapshot(record.NewKey("not exits"), <-sg)
+	assert.False(t, ok)
+
+	//	test delete and get snapshot
+	mt.Delete(b.Key(), <-sg)
+	res, ok = mt.GetWithSnapshot(b.Key(), b.Id)
+	assert.True(t, ok)
+	assert.Equal(t, b, res)
+
+	_, ok = mt.GetWithSnapshot(b.Key(), <-sg)
+	assert.False(t, ok)
 
 }
