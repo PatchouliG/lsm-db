@@ -37,7 +37,6 @@ func TestLogFileWriteAndRead(t *testing.T) {
 }
 
 // todo add test, restore memtable from log file
-
 func generateLogFile(t *testing.T, startKey int, endKey int) *logFileReader {
 	f := createTestFileName(t)
 
