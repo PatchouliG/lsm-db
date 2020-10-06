@@ -3,7 +3,11 @@ package memtable
 import (
 	"github.com/PatchouliG/wisckey-db/record"
 	"github.com/PatchouliG/wisckey-db/snapshot"
+	"path"
+	"strconv"
 )
+
+var logFileOutPutDir string
 
 type RecordWithTransaction struct {
 	record.Record
@@ -16,14 +20,33 @@ func NewRecordWithTransaction(r record.Record, id snapshot.Id) RecordWithTransac
 
 // not thread safe
 type Memtable struct {
-	m map[record.Key][]RecordWithTransaction
+	id  Id
+	m   map[record.Key][]RecordWithTransaction
+	lfw *logFileWriter
 }
 
 func NewMemtable() *Memtable {
-	return &Memtable{m: make(map[record.Key][]RecordWithTransaction)}
+	id := getNextId()
+	return &Memtable{id: id, m: make(map[record.Key][]RecordWithTransaction), lfw: NewLogFileWriter(logFileName(id))}
 }
 
-func (mt *Memtable) Put(rt RecordWithTransaction) {
+//	todo
+func restoreFromLogFile() *Memtable {
+	panic("")
+}
+
+// default async to write log file
+// return false if log file size reach limit
+func (mt *Memtable) Put(rt RecordWithTransaction) bool {
+	res := mt.lfw.Write(rt.Record)
+	if !res {
+		return false
+	}
+	mt.putToMemtable(rt)
+	return true
+}
+
+func (mt *Memtable) putToMemtable(rt RecordWithTransaction) {
 	if rs, ok := mt.m[rt.Key()]; ok {
 		mt.m[rt.Key()] = append(rs, rt)
 	} else {
@@ -74,4 +97,8 @@ func (mt *Memtable) Delete(key record.Key, id snapshot.Id) bool {
 	}
 	mt.m[key] = append(rs, NewRecordWithTransaction(record.NewDeleteRecord(key), id))
 	return true
+}
+
+func logFileName(id Id) string {
+	return path.Join(logFileOutPutDir, "memtable_"+strconv.Itoa(id.id)+"_logFile")
 }

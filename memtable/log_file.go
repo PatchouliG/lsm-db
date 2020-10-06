@@ -8,7 +8,7 @@ import (
 )
 
 // 1MB
-const logFileSizeLimit = 1024 * 1024
+const logFileSizeLimit = 4 * 1024 * 1024
 
 // log file for memtable
 // block *N
