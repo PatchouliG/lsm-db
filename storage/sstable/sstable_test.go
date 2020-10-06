@@ -64,7 +64,7 @@ func TestOrderAfterCompaction(t *testing.T) {
 	sumOfCompactionOutput := 0
 
 	for _, f := range res {
-		sumOfCompactionOutput += checkOrder(t, f)
+		sumOfCompactionOutput += checkOrder(t, f.Reader)
 	}
 	assert.Equal(t, sum, sumOfCompactionOutput)
 }
