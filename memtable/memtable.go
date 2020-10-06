@@ -4,7 +4,6 @@ import (
 	"github.com/PatchouliG/wisckey-db/record"
 	"github.com/PatchouliG/wisckey-db/snapshot"
 	"path"
-	"strconv"
 )
 
 var logFileOutPutDir string
@@ -26,8 +25,8 @@ type Memtable struct {
 }
 
 func NewMemtable() *Memtable {
-	id := getNextId()
-	return &Memtable{id: id, m: make(map[record.Key][]RecordWithTransaction), lfw: NewLogFileWriter(logFileName(id))}
+	i := NextId()
+	return &Memtable{id: i, m: make(map[record.Key][]RecordWithTransaction), lfw: NewLogFileWriter(logFileName(i))}
 }
 
 //	todo
@@ -100,5 +99,5 @@ func (mt *Memtable) Delete(key record.Key, id snapshot.Id) bool {
 }
 
 func logFileName(id Id) string {
-	return path.Join(logFileOutPutDir, "memtable_"+strconv.Itoa(id.id)+"_logFile")
+	return path.Join(logFileOutPutDir, "memtable_"+id.id.String()+"_logFile")
 }

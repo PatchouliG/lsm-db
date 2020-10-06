@@ -14,11 +14,10 @@ var sg chan snapshot.Id
 
 func init() {
 	sg = make(chan snapshot.Id)
-	id := 0
+	snapshot.SetStartId(0)
 	go func() {
 		for {
-			sg <- snapshot.MockId(int64(id))
-			id++
+			sg <- snapshot.NextId()
 		}
 	}()
 
