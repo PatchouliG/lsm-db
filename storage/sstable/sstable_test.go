@@ -69,31 +69,6 @@ func TestOrderAfterCompaction(t *testing.T) {
 	assert.Equal(t, sum, sumOfCompactionOutput)
 }
 
-func TestLogFileWriteAndRead(t *testing.T) {
-	f := createTestFileName(t)
-
-	lfw := NewLogFileWriter(f.Name())
-
-	a := record.NewRecordStr("key1", "value1")
-	b := record.NewRecordStr("key2", "value2")
-	lfw.Write(a)
-	lfw.Write(b)
-	lfw.Flush()
-
-	flr := newLogFileReader(f.Name())
-
-	r, ok := flr.Next()
-	assert.True(t, ok)
-	assert.Equal(t, a, r)
-
-	r, ok = flr.Next()
-	assert.True(t, ok)
-	assert.Equal(t, b, r)
-
-	_, ok = flr.Next()
-	assert.False(t, ok)
-}
-
 func createTestFileName(t *testing.T) *os.File {
 	file, err := ioutil.TempFile("", "TestSstableWriteAndRead")
 	assert.Nil(t, err)
@@ -133,28 +108,6 @@ func checkKV(t *testing.T, sstr *Reader) {
 		assert.True(t, ok)
 		assert.Equal(t, "value_"+r.Key().Value(), value.Value())
 	}
-}
-
-func generateLogFile(t *testing.T, startKey int, endKey int) *logFileReader {
-	f := createTestFileName(t)
-
-	res := NewLogFileWriter(f.Name())
-	var keys []string
-	for i := 0; i < 100000; i++ {
-		prefix := rand.Intn(endKey-startKey+1) + startKey
-		// format key_i
-		key := strconv.Itoa(prefix) + "_" + strconv.Itoa(i)
-		keys = append(keys, key)
-	}
-	sort.Strings(keys)
-	for _, key := range keys {
-		ok := res.Write(record.NewRecordStr(key, "value_"+key))
-		if !ok {
-			return newLogFileReader(f.Name())
-		}
-	}
-	t.Fatal("should build a full log file ")
-	panic("")
 }
 
 func randFileNameGenerator(t *testing.T) chan string {

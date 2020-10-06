@@ -1,4 +1,4 @@
-package sstable
+package memtable
 
 import (
 	"github.com/PatchouliG/wisckey-db/record"
