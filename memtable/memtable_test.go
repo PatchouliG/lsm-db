@@ -62,6 +62,9 @@ func TestMemtableBasic(t *testing.T) {
 	_, ok = mt.Get(a.Key())
 	assert.False(t, ok)
 
+	err := mt.Discard()
+	assert.Nil(t, err)
+
 }
 
 func TestSnapshotOperation(t *testing.T) {
@@ -102,6 +105,9 @@ func TestSnapshotOperation(t *testing.T) {
 	_, ok = mt.GetWithSnapshot(b.Key(), <-sg)
 	assert.False(t, ok)
 
+	err := mt.Discard()
+	assert.Nil(t, err)
+
 }
 
 func TestWriteMemtableUtilFull(t *testing.T) {
@@ -124,6 +130,9 @@ func TestWriteMemtableUtilFull(t *testing.T) {
 			assert.Equal(t, r, res)
 		}
 	}
+	err := mt.Discard()
+	assert.Nil(t, err)
+
 }
 
 // unique key

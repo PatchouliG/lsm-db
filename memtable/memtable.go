@@ -3,6 +3,8 @@ package memtable
 import (
 	"github.com/PatchouliG/wisckey-db/record"
 	"github.com/PatchouliG/wisckey-db/snapshot"
+	log "github.com/sirupsen/logrus"
+	"os"
 	"path"
 )
 
@@ -100,4 +102,18 @@ func (mt *Memtable) Delete(key record.Key, id snapshot.Id) bool {
 
 func logFileName(id Id) string {
 	return path.Join(logFileOutPutDir, "memtable_"+id.id.String()+"_logFile")
+}
+
+// delete log file if memtable is unusable (discard)
+func (mt *Memtable) Discard() error {
+	logFileName := logFileName(mt.id)
+	log.WithField("log file", logFileName).Info("memtable discard , delete log file")
+	err := os.Remove(logFileName)
+	if err != nil {
+		log.WithError(err).
+			WithField("log file", logFileName).
+			Error("remove log file fail")
+		return err
+	}
+	return nil
 }
