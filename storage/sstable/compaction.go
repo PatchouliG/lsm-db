@@ -6,7 +6,13 @@ import (
 	"log"
 )
 
-func Compaction(rs []*Reader, outputFileChan chan string) []*Reader {
+type ReaderWithKeyRange struct {
+	*Reader
+	StartKey record.Key
+	EndKey   record.Key
+}
+
+func Compaction(rs []*Reader, outputFileChan chan string) []*ReaderWithKeyRange {
 	var ri []record.Iterator
 	for _, reader := range rs {
 		ri = append(ri, reader)
@@ -15,18 +21,25 @@ func Compaction(rs []*Reader, outputFileChan chan string) []*Reader {
 }
 
 // return output sstable file reader
-func compaction(ris []record.Iterator, outputFileChan chan string) []*Reader {
+func compaction(ris []record.Iterator, outputFileChan chan string) []*ReaderWithKeyRange {
 	generator := newRecordGenerator(ris)
 
 	sstw := getSStw(outputFileChan)
-	var res []*Reader
+	var res []*ReaderWithKeyRange
+	var startKey record.Key
+	var lastWriteKey record.Key
 	for {
 		r, ok := generator.next()
 		// no more record, Flush sstw, return
 		if !ok {
 			flush(sstw)
-			res = append(res, NewReader(sstw.file.Name()))
+			res = append(res, NewReaderWithKeyRange(sstw, startKey, lastWriteKey))
 			break
+		}
+
+		//  update start key if necessary
+		if len(startKey.Value()) == 0 {
+			startKey = r.Key()
 		}
 
 		// write record to sstw
@@ -34,15 +47,27 @@ func compaction(ris []record.Iterator, outputFileChan chan string) []*Reader {
 		// write fail, Flush sstw, create new sstw
 		if !ok {
 			flush(sstw)
-			res = append(res, NewReader(sstw.file.Name()))
+			res = append(res, NewReaderWithKeyRange(sstw, startKey, lastWriteKey))
 			sstw = getSStw(outputFileChan)
 			ok = sstw.Write(r)
 			if !ok {
 				log.Panic("write empty sstable file fail")
 			}
+			// write to a new sstable success, update start key to empty
+			startKey = record.Key{}
 		}
+		// write success update last write key
+		lastWriteKey = r.Key()
 	}
 	return res
+}
+
+func NewReaderWithKeyRange(sstw *Writer, startKey record.Key, endKey record.Key) *ReaderWithKeyRange {
+	if len(startKey.Value()) == 0 || len(endKey.Value()) == 0 {
+		log.Panicf("start key %s or end key %s should not be empty", startKey.Value(), endKey.Value())
+	}
+	return &ReaderWithKeyRange{NewReader(sstw.file.Name()),
+		startKey, endKey}
 }
 
 func flush(sstw *Writer) {

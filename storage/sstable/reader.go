@@ -61,37 +61,37 @@ func NewReader(file string) *Reader {
 	return &res
 }
 
-func (ssf *Reader) Reset() {
-	ssf.position = 0
-	_, err := ssf.file.Seek(0, 0)
+func (r *Reader) Reset() {
+	r.position = 0
+	_, err := r.file.Seek(0, 0)
 	if err != nil {
 		log.WithField("err", err).
-			Panicf("seek file %s fail", ssf.file.Name())
+			Panicf("seek file %s fail", r.file.Name())
 	}
 }
 
 // return ture if found
-func (ssf *Reader) Find(key record.Key) (record.Record, bool) {
-	br, ok := ssf.findBlockMayContain(key)
+func (r *Reader) Find(key record.Key) (record.Record, bool) {
+	br, ok := r.findBlockMayContain(key)
 	if !ok {
 		return record.Record{}, false
 	}
 
 	ri := record.NewRecordReader(br.Byte())
-	r, ok := ri.FindBy(key)
-	return r, ok
+	record, ok := ri.FindBy(key)
+	return record, ok
 
 }
 
-func (ssf *Reader) Next() (record.Record, bool) {
-	res, ok := ssf.rr.Next()
+func (r *Reader) Next() (record.Record, bool) {
+	res, ok := r.rr.Next()
 	if !ok {
-		br, ok := ssf.nextBlock()
+		br, ok := r.nextBlock()
 		if !ok {
 			return record.Record{}, false
 		}
-		ssf.rr = record.NewRecordReader(br.Byte())
-		res, ok = ssf.rr.Next()
+		r.rr = record.NewRecordReader(br.Byte())
+		res, ok = r.rr.Next()
 		if !ok {
 			return record.Record{}, false
 		}
@@ -102,31 +102,31 @@ func (ssf *Reader) Next() (record.Record, bool) {
 
 // todo add record block cache
 // false if not find
-func (ssf *Reader) findBlockMayContain(key record.Key) (block.Reader, bool) {
-	res := searchKey(ssf.firstKey, key)
-	if res == len(ssf.firstKey) || res == 0 {
+func (r *Reader) findBlockMayContain(key record.Key) (block.Reader, bool) {
+	res := searchKey(r.firstKey, key)
+	if res == len(r.firstKey) || res == 0 {
 		return block.Reader{}, false
 	}
 
 	data := make([]byte, block.DataBlockSizeInByte)
-	_, err := ssf.file.ReadAt(data, int64(block.DataBlockSizeInByte*(res-1)))
+	_, err := r.file.ReadAt(data, int64(block.DataBlockSizeInByte*(res-1)))
 	if err != nil {
 		log.WithField("err", err).
-			Panicf("read file %s fail", ssf.file.Name())
+			Panicf("read file %s fail", r.file.Name())
 	}
 
 	return block.NewReader(data), true
 }
 
 // return false if no data
-func (ssf *Reader) nextBlock() (block.Reader, bool) {
-	if ssf.position == len(ssf.firstKey) {
+func (r *Reader) nextBlock() (block.Reader, bool) {
+	if r.position == len(r.firstKey) {
 		return block.Reader{}, false
 	}
 	data := make([]byte, block.DataBlockSizeInByte)
-	n, err := ssf.file.Read(data)
+	n, err := r.file.Read(data)
 
-	ssf.position += 1
+	r.position += 1
 
 	if n == 0 && err == io.EOF {
 		return block.Reader{}, false
@@ -138,6 +138,10 @@ func (ssf *Reader) nextBlock() (block.Reader, bool) {
 		log.Panic("read block err", err)
 	}
 	return block.NewReader(data), true
+}
+
+func (r *Reader) fileName() string {
+	return r.file.Name()
 }
 
 // return len(keys) if not found
