@@ -1,18 +1,17 @@
 package memtable
 
-import "sync"
+import "github.com/PatchouliG/wisckey-db/id"
 
-var nextId int
-var lock sync.Mutex
-
-func getNextId() (id Id) {
-	lock.Lock()
-	lock.Unlock()
-	id = Id{nextId}
-	nextId++
-	return
-}
+var idGenerator *id.Generator
 
 type Id struct {
-	id int
+	id id.Id
+}
+
+func NextId() Id {
+	return Id{idGenerator.Next()}
+}
+
+func (id Id) Cmp(i Id) int64 {
+	return id.id.Cmp(i.id)
 }

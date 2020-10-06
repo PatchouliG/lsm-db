@@ -1,12 +1,14 @@
 package memtable
 
+import "github.com/PatchouliG/wisckey-db/id"
+
 type Config struct {
-	NextId     int
+	NextId     int64
 	LogfileDir string
 }
 
 // must call before run
 func setConfig(config Config) {
-	nextId = config.NextId
+	idGenerator = id.NewGenerator(config.NextId)
 	logFileOutPutDir = config.LogfileDir
 }
