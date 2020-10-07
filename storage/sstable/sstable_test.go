@@ -1,22 +1,29 @@
 package sstable
 
 import (
+	"github.com/PatchouliG/wisckey-db/gloablConfig"
 	"github.com/PatchouliG/wisckey-db/record"
 	"github.com/stretchr/testify/assert"
 	"io/ioutil"
 	"math/rand"
-	"os"
 	"sort"
 	"strconv"
 	"testing"
 )
 
+func init() {
+	setConfig(Config{0})
+	res, err := ioutil.TempDir("", "sstable_test")
+	if err != nil {
+		panic(err)
+	}
+	gloablConfig.WorkDir = res
+}
 func TestSstableWriteAndFind(t *testing.T) {
-	file := createTestFileName(t)
-	err := createSStable(t, file)
+	id, err := createSStable(t)
 	assert.Nil(t, err)
 
-	sstf := NewReader(file.Name())
+	sstf := NewReader(id)
 
 	// find by record
 	k := record.NewKey(strconv.Itoa(10000000064))
@@ -39,12 +46,11 @@ func TestSstableWriteAndFind(t *testing.T) {
 }
 
 func TestReader_Next(t *testing.T) {
-	file := createTestFileName(t)
-	err := createSStable(t, file)
+	//file := createTestFileName(t)
+	id, err := createSStable(t)
 	assert.Nil(t, err)
 
-	sstr := NewReader(file.Name())
-
+	sstr := NewReader(id)
 	checkKV(t, sstr)
 
 }
@@ -59,8 +65,7 @@ func TestOrderAfterCompaction(t *testing.T) {
 
 	sum := aNumber + bNumber + cNumber
 
-	fc := randFileNameGenerator(t)
-	res := Compaction([]*Reader{a, b, c}, fc)
+	res := Compaction([]*Reader{a, b, c})
 	sumOfCompactionOutput := 0
 
 	for _, f := range res {
@@ -69,16 +74,10 @@ func TestOrderAfterCompaction(t *testing.T) {
 	assert.Equal(t, sum, sumOfCompactionOutput)
 }
 
-func createTestFileName(t *testing.T) *os.File {
-	file, err := ioutil.TempFile("", "TestSstableWriteAndRead")
-	assert.Nil(t, err)
-	return file
-}
-
 // key range: odd number from 10000000000
-func createSStable(t *testing.T, file *os.File) error {
+func createSStable(t *testing.T) (Id, error) {
 	// build sstable file
-	sstw, err := NewSStableWriter(file.Name())
+	sstw, err := NewSStableWriter()
 	assert.Nil(t, err)
 
 	blockCount := 10000000000
@@ -94,7 +93,7 @@ func createSStable(t *testing.T, file *os.File) error {
 
 	err = sstw.FlushToFile()
 	assert.Nil(t, err)
-	return err
+	return sstw.Id(), err
 }
 
 // check value is "value_"+key
@@ -110,23 +109,22 @@ func checkKV(t *testing.T, sstr *Reader) {
 	}
 }
 
-func randFileNameGenerator(t *testing.T) chan string {
-	res := make(chan string)
-	go func() {
-		for {
-			file := createTestFileName(t)
-			res <- file.Name()
-		}
-	}()
-	return res
-}
+//func randFileNameGenerator(t *testing.T) chan string {
+//	res := make(chan string)
+//	go func() {
+//		for {
+//			file := createTestFileName(t)
+//			res <- file.Name()
+//		}
+//	}()
+//	return res
+//}
 
 // key range [startKey,endKey]
 // return full sstable and record count
 func generateOrderedSStableFile(t *testing.T, startKeyFirstLetter int, endKeyFirstLetter int) (*Reader, int) {
-	file := createTestFileName(t)
 
-	sstw, err := NewSStableWriter(file.Name())
+	sstw, err := NewSStableWriter()
 	assert.Nil(t, err)
 
 	var keys []string
@@ -144,7 +142,7 @@ func generateOrderedSStableFile(t *testing.T, startKeyFirstLetter int, endKeyFir
 		if !ok {
 			err = sstw.FlushToFile()
 			assert.Nil(t, err)
-			return NewReader(file.Name()), i
+			return NewReader(sstw.Id()), i
 		}
 	}
 	t.Fatal("key set size is not enough fill up sstable")

@@ -12,19 +12,19 @@ type ReaderWithKeyRange struct {
 	EndKey   record.Key
 }
 
-func Compaction(rs []*Reader, outputFileChan chan string) []*ReaderWithKeyRange {
+func Compaction(rs []*Reader) []*ReaderWithKeyRange {
 	var ri []record.Iterator
 	for _, reader := range rs {
 		ri = append(ri, reader)
 	}
-	return compaction(ri, outputFileChan)
+	return compaction(ri)
 }
 
 // return output sstable file reader
-func compaction(ris []record.Iterator, outputFileChan chan string) []*ReaderWithKeyRange {
+func compaction(ris []record.Iterator) []*ReaderWithKeyRange {
 	generator := newRecordGenerator(ris)
 
-	sstw := getSStw(outputFileChan)
+	sstw := getSStw()
 	var res []*ReaderWithKeyRange
 	var startKey record.Key
 	var lastWriteKey record.Key
@@ -48,7 +48,7 @@ func compaction(ris []record.Iterator, outputFileChan chan string) []*ReaderWith
 		if !ok {
 			flush(sstw)
 			res = append(res, NewReaderWithKeyRange(sstw, startKey, lastWriteKey))
-			sstw = getSStw(outputFileChan)
+			sstw = getSStw()
 			ok = sstw.Write(r)
 			if !ok {
 				log.Panic("write empty sstable file fail")
@@ -66,7 +66,7 @@ func NewReaderWithKeyRange(sstw *Writer, startKey record.Key, endKey record.Key)
 	if len(startKey.Value()) == 0 || len(endKey.Value()) == 0 {
 		log.Panicf("start key %s or end key %s should not be empty", startKey.Value(), endKey.Value())
 	}
-	return &ReaderWithKeyRange{NewReader(sstw.file.Name()),
+	return &ReaderWithKeyRange{NewReader(sstw.Id()),
 		startKey, endKey}
 }
 
@@ -77,9 +77,8 @@ func flush(sstw *Writer) {
 	}
 }
 
-func getSStw(outputFileChan chan string) *Writer {
-	f := <-outputFileChan
-	sstw, err := NewSStableWriter(f)
+func getSStw() *Writer {
+	sstw, err := NewSStableWriter()
 	if err != nil {
 		log.Panic("create new sstable file error ", err)
 	}
