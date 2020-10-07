@@ -1,6 +1,7 @@
 package sstable
 
 import (
+	"github.com/PatchouliG/wisckey-db/gloablConfig"
 	"github.com/PatchouliG/wisckey-db/record"
 	"github.com/PatchouliG/wisckey-db/storage/block"
 	log "github.com/sirupsen/logrus"
@@ -24,18 +25,20 @@ const (
 // meta record block (32Kb)
 
 type Reader struct {
+	id       Id
 	file     *os.File
 	firstKey []record.Key
 	position int
 	rr       *record.Reader
 }
 
-func NewReader(file string) *Reader {
+func NewReader(id Id) *Reader {
 	res := Reader{}
 	// empty reader
 	res.rr = &record.Reader{}
 
-	f, err := os.OpenFile(file, os.O_RDONLY, 0600)
+	fileName := gloablConfig.SStableName(id.Id)
+	f, err := os.OpenFile(fileName, os.O_RDONLY, 0600)
 	if err != nil {
 		log.Panic("open sstable fail ", err)
 	}
@@ -78,8 +81,8 @@ func (r *Reader) Find(key record.Key) (record.Record, bool) {
 	}
 
 	ri := record.NewRecordReader(br.Byte())
-	record, ok := ri.FindBy(key)
-	return record, ok
+	recordFound, ok := ri.FindBy(key)
+	return recordFound, ok
 
 }
 

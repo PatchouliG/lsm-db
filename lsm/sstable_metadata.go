@@ -2,7 +2,6 @@ package lsm
 
 import (
 	"github.com/PatchouliG/wisckey-db/record"
-	"path"
 	"sort"
 )
 
@@ -16,11 +15,6 @@ type sstableMetaData struct {
 
 func newSStableMetaData(id sstableId, startKey record.Key, endKey record.Key) sstableMetaData {
 	return sstableMetaData{id, startKey, endKey, 1}
-}
-
-// to file name todo
-func (sstm *sstableMetaData) fileName(id sstableId) string {
-	return path.Join(dbDir, "sstable_"+id.Id.String())
 }
 
 // remove  sstable file if ref count is 0
