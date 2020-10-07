@@ -12,3 +12,7 @@ var WorkDir = viper.GetString("WorkDir")
 func SStableName(id id.Id) string {
 	return path.Join(WorkDir, "sstable_"+id.String())
 }
+
+func LogFileName(id id.Id) string {
+	return path.Join(WorkDir, "memtable_"+id.String()+"_logFile")
+}

@@ -1,8 +1,10 @@
 package memtable
 
 import (
+	"github.com/PatchouliG/wisckey-db/gloablConfig"
 	"github.com/PatchouliG/wisckey-db/record"
 	"github.com/PatchouliG/wisckey-db/snapshot"
+	"github.com/PatchouliG/wisckey-db/storage/sstable"
 	"github.com/stretchr/testify/assert"
 	"io/ioutil"
 	"math/rand"
@@ -25,7 +27,10 @@ func init() {
 	if err != nil {
 		panic("create tmp dir err")
 	}
-	setConfig(Config{0, dir})
+	gloablConfig.WorkDir = dir
+
+	sstable.SetConfig(sstable.Config{})
+	SetConfig(Config{0})
 }
 
 func TestMemtableBasic(t *testing.T) {
@@ -138,16 +143,50 @@ func TestWriteMemtableUtilFull(t *testing.T) {
 // unique key
 func randomRecordChan() chan record.Record {
 	res := make(chan record.Record)
+	count := 0
+	pool := []byte("23423w34t24ta809q234yf93ghq09ty223423423daf4p98f4y")
 	go func() {
 		for {
-			pool := []byte("23423wfsddafw34t24tfwaserf809q234yfhq93ghq09ty223423423dasdweyf4p98f4y")
-			count := 0
-			key := string(pool[rand.Intn(len(pool))]) + "_" + strconv.Itoa(count)
+			key := "key_" + string(pool[rand.Intn(len(pool))]) + "_" + strconv.Itoa(count)
 			count++
-			value := string(pool[rand.Intn(len(pool))]) + strconv.Itoa(count)
+			value := "value_" + string(pool[rand.Intn(len(pool))]) + strconv.Itoa(count)
 			count++
 			res <- record.NewRecordStr(key, value)
 		}
 	}()
 	return res
+}
+
+func TestToSstable(t *testing.T) {
+
+	mt := NewMemtable()
+	rc := randomRecordChan()
+
+	// insert until full
+	for {
+		r := <-rc
+		sid := <-sg
+		ok := mt.Put(NewRecordWithTransaction(r, sid))
+		if !ok {
+			break
+		}
+	}
+
+	ssts := mt.ToSStable()
+	// should produce multiple sstable
+	assert.Greater(t, len(ssts), 1)
+	var lastKey record.Key
+	//	check order by key
+	for _, sstr := range ssts {
+		for {
+			r, ok := sstr.Next()
+			if !ok {
+				break
+			}
+			if len(lastKey.Value()) != 0 {
+				assert.True(t, r.Key().Value() >= lastKey.Value())
+			}
+			lastKey = r.Key()
+		}
+	}
 }
