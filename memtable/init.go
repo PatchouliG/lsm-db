@@ -3,12 +3,10 @@ package memtable
 import "github.com/PatchouliG/wisckey-db/id"
 
 type Config struct {
-	NextId     int64
-	LogfileDir string
+	NextId int64
 }
 
 // must call before run
-func setConfig(config Config) {
+func SetConfig(config Config) {
 	idGenerator = id.NewGenerator(config.NextId)
-	logFileOutPutDir = config.LogfileDir
 }

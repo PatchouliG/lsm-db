@@ -12,16 +12,16 @@ type ReaderWithKeyRange struct {
 	EndKey   record.Key
 }
 
-func Compaction(rs []*Reader) []*ReaderWithKeyRange {
+func BuildSStableFromReader(rs []*Reader) []*ReaderWithKeyRange {
 	var ri []record.Iterator
 	for _, reader := range rs {
 		ri = append(ri, reader)
 	}
-	return compaction(ri)
+	return BuildSStable(ri)
 }
 
 // return output sstable file reader
-func compaction(ris []record.Iterator) []*ReaderWithKeyRange {
+func BuildSStable(ris []record.Iterator) []*ReaderWithKeyRange {
 	generator := newRecordGenerator(ris)
 
 	sstw := getSStw()

@@ -1,14 +1,14 @@
 package memtable
 
 import (
+	"github.com/PatchouliG/wisckey-db/gloablConfig"
 	"github.com/PatchouliG/wisckey-db/record"
 	"github.com/PatchouliG/wisckey-db/snapshot"
+	"github.com/PatchouliG/wisckey-db/storage/sstable"
 	log "github.com/sirupsen/logrus"
 	"os"
-	"path"
+	"sort"
 )
-
-var logFileOutPutDir string
 
 type RecordWithTransaction struct {
 	record.Record
@@ -28,7 +28,8 @@ type Memtable struct {
 
 func NewMemtable() *Memtable {
 	i := NextId()
-	return &Memtable{id: i, m: make(map[record.Key][]RecordWithTransaction), lfw: NewLogFileWriter(logFileName(i))}
+	return &Memtable{id: i, m: make(map[record.Key][]RecordWithTransaction),
+		lfw: NewLogFileWriter(gloablConfig.LogFileName(i.id))}
 }
 
 //	todo
@@ -100,13 +101,9 @@ func (mt *Memtable) Delete(key record.Key, id snapshot.Id) bool {
 	return true
 }
 
-func logFileName(id Id) string {
-	return path.Join(logFileOutPutDir, "memtable_"+id.id.String()+"_logFile")
-}
-
 // delete log file if memtable is unusable (discard)
 func (mt *Memtable) Discard() error {
-	logFileName := logFileName(mt.id)
+	logFileName := gloablConfig.LogFileName(mt.id.id)
 	log.WithField("log file", logFileName).Info("memtable discard , delete log file")
 	err := os.Remove(logFileName)
 	if err != nil {
@@ -116,4 +113,37 @@ func (mt *Memtable) Discard() error {
 		return err
 	}
 	return nil
+}
+
+type recordIteratorImp struct {
+	recordSlice []record.Record
+	position    int
+}
+
+func (r *recordIteratorImp) Next() (record.Record, bool) {
+	if r.position < len(r.recordSlice) {
+		res := r.recordSlice[r.position]
+		r.position++
+		return res, true
+	}
+	return record.Record{}, false
+}
+
+func (mt *Memtable) toRecordIterator() record.Iterator {
+	var recordSlice []record.Record
+	for _, value := range mt.m {
+		lastRecord := value[len(value)-1]
+		recordSlice = append(recordSlice, lastRecord.Record)
+	}
+	// sort by key
+	sort.Slice(recordSlice, func(i, j int) bool {
+		return recordSlice[i].Key().Value() < recordSlice[j].Key().Value()
+	})
+	return &recordIteratorImp{recordSlice, 0}
+}
+
+func (mt *Memtable) ToSStable() []*sstable.ReaderWithKeyRange {
+	ri := mt.toRecordIterator()
+	res := sstable.BuildSStable([]record.Iterator{ri})
+	return res
 }

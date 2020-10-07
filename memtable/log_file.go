@@ -7,7 +7,7 @@ import (
 	"os"
 )
 
-// 1MB
+// 4MB
 const logFileSizeLimit = 4 * 1024 * 1024
 
 // log file for memtable

@@ -12,7 +12,7 @@ import (
 )
 
 func init() {
-	setConfig(Config{0})
+	SetConfig(Config{0})
 	res, err := ioutil.TempDir("", "sstable_test")
 	if err != nil {
 		panic(err)
@@ -55,7 +55,7 @@ func TestReader_Next(t *testing.T) {
 
 }
 
-// test sstable file is in order after compaction
+// test sstable file is in order after BuildSStable
 func TestOrderAfterCompaction(t *testing.T) {
 	// low level sstable, key range overlap with high level
 	a, aNumber := generateOrderedSStableFile(t, 1, 7)
@@ -65,7 +65,7 @@ func TestOrderAfterCompaction(t *testing.T) {
 
 	sum := aNumber + bNumber + cNumber
 
-	res := Compaction([]*Reader{a, b, c})
+	res := BuildSStableFromReader([]*Reader{a, b, c})
 	sumOfCompactionOutput := 0
 
 	for _, f := range res {
