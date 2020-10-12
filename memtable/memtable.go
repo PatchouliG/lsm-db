@@ -8,6 +8,7 @@ import (
 	log "github.com/sirupsen/logrus"
 	"os"
 	"sort"
+	"sync"
 )
 
 type RecordWithTransaction struct {
@@ -21,14 +22,16 @@ func NewRecordWithTransaction(r record.Record, id snapshot.Id) RecordWithTransac
 
 // not thread safe
 type Memtable struct {
-	id  Id
-	m   map[record.Key][]RecordWithTransaction
+	id Id
+	//m    [record.Key][]RecordWithTransaction
+	// key -> RecordWithTransaction
+	m   sync.Map
 	lfw *logFileWriter
 }
 
 func NewMemtable() *Memtable {
 	i := NextId()
-	return &Memtable{id: i, m: make(map[record.Key][]RecordWithTransaction),
+	return &Memtable{id: i, m: sync.Map{},
 		lfw: NewLogFileWriter(gloablConfig.LogFileName(i.id))}
 }
 
@@ -49,21 +52,23 @@ func (mt *Memtable) Put(rt RecordWithTransaction) bool {
 }
 
 func (mt *Memtable) putToMemtable(rt RecordWithTransaction) {
-	if rs, ok := mt.m[rt.Key()]; ok {
-		mt.m[rt.Key()] = append(rs, rt)
+	if rs, ok := mt.m.Load(rt.Key()); ok {
+		rs = append(rs.([]RecordWithTransaction), rt)
+		mt.m.Store(rt.Key(), rs)
 	} else {
-		mt.m[rt.Key()] = []RecordWithTransaction{rt}
+		mt.m.Store(rt.Key(), []RecordWithTransaction{rt})
 	}
 }
 
 // false if not found
 // return latest record
 func (mt *Memtable) Get(key record.Key) (RecordWithTransaction, bool) {
-	rs, ok := mt.m[key]
+	rs, ok := mt.m.Load(key)
 	if !ok {
 		return RecordWithTransaction{}, false
 	}
-	res := rs[len(rs)-1]
+	rst := rs.([]RecordWithTransaction)
+	res := rst[len(rst)-1]
 	if res.IsDeleted() {
 		return RecordWithTransaction{}, false
 	}
@@ -71,11 +76,12 @@ func (mt *Memtable) Get(key record.Key) (RecordWithTransaction, bool) {
 }
 
 func (mt *Memtable) GetWithSnapshot(key record.Key, id snapshot.Id) (res RecordWithTransaction, found bool) {
-	rs, ok := mt.m[key]
+	rst, ok := mt.m.Load(key)
 	if !ok {
 		found = false
 		return
 	}
+	rs := rst.([]RecordWithTransaction)
 	for i := len(rs) - 1; i >= 0; i-- {
 		r := rs[i]
 		if r.Id.Cmp(id) > 0 {
@@ -93,11 +99,12 @@ func (mt *Memtable) GetWithSnapshot(key record.Key, id snapshot.Id) (res RecordW
 
 // false if not found
 func (mt *Memtable) Delete(key record.Key, id snapshot.Id) bool {
-	rs, ok := mt.m[key]
+	rst, ok := mt.m.Load(key)
 	if !ok {
 		return false
 	}
-	mt.m[key] = append(rs, NewRecordWithTransaction(record.NewDeleteRecord(key), id))
+	rs := rst.([]RecordWithTransaction)
+	mt.m.Store(key, append(rs, NewRecordWithTransaction(record.NewDeleteRecord(key), id)))
 	return true
 }
 
@@ -131,11 +138,12 @@ func (r *recordIteratorImp) Next() (record.Record, bool) {
 
 func (mt *Memtable) toRecordIterator() record.Iterator {
 	var recordSlice []record.Record
-	for _, value := range mt.m {
-		lastRecord := value[len(value)-1]
+	mt.m.Range(func(key, value interface{}) bool {
+		typedValue := value.([]RecordWithTransaction)
+		lastRecord := typedValue[len(typedValue)-1]
 		recordSlice = append(recordSlice, lastRecord.Record)
-	}
-	// sort by key
+		return true
+	})
 	sort.Slice(recordSlice, func(i, j int) bool {
 		return recordSlice[i].Key().Value() < recordSlice[j].Key().Value()
 	})
