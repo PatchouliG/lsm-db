@@ -4,7 +4,6 @@ import (
 	"github.com/PatchouliG/wisckey-db/gloablConfig"
 	"github.com/PatchouliG/wisckey-db/record"
 	"github.com/stretchr/testify/assert"
-	"io/ioutil"
 	"math/rand"
 	"sort"
 	"strconv"
@@ -12,12 +11,7 @@ import (
 )
 
 func init() {
-	SetConfig(Config{0})
-	res, err := ioutil.TempDir("", "sstable_test")
-	if err != nil {
-		panic(err)
-	}
-	gloablConfig.WorkDir = res
+	gloablConfig.UseTestConfig()
 }
 func TestSstableWriteAndFind(t *testing.T) {
 	id, err := createSStable(t)

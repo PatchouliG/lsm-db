@@ -1,11 +1,14 @@
 package sstable
 
-import "github.com/PatchouliG/wisckey-db/id"
+import (
+	"github.com/PatchouliG/wisckey-db/gloablConfig"
+	"github.com/PatchouliG/wisckey-db/id"
+)
 
 type Config struct {
 	StartId int64
 }
 
-func SetConfig(config Config) {
-	idGenerator = id.NewGenerator(config.StartId)
+func init() {
+	idGenerator = id.NewGenerator(gloablConfig.GlobalConfig.SStableStartId)
 }

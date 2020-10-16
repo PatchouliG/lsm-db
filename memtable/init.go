@@ -1,12 +1,10 @@
 package memtable
 
-import "github.com/PatchouliG/wisckey-db/id"
+import (
+	"github.com/PatchouliG/wisckey-db/gloablConfig"
+	"github.com/PatchouliG/wisckey-db/id"
+)
 
-type Config struct {
-	NextId int64
-}
-
-// must call before run
-func SetConfig(config Config) {
-	idGenerator = id.NewGenerator(config.NextId)
+func init() {
+	idGenerator = id.NewGenerator(gloablConfig.GlobalConfig.MemtableStartId)
 }

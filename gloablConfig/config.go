@@ -2,17 +2,32 @@ package gloablConfig
 
 import (
 	"github.com/PatchouliG/wisckey-db/id"
-	"github.com/spf13/viper"
+	"io/ioutil"
 	"path"
 )
 
-// set to tmp dir if test
-var WorkDir = viper.GetString("WorkDir")
+var GlobalConfig Config
+
+type Config struct {
+	SStableStartId  int64
+	MemtableStartId int64
+	SnapshotId      int64
+	WorkDir         string
+}
+
+func UseTestConfig() {
+	dir, err := ioutil.TempDir("", "sstable_test")
+	if err != nil {
+		panic(err)
+	}
+
+	GlobalConfig = Config{0, 0, 0, dir}
+}
 
 func SStableName(id id.Id) string {
-	return path.Join(WorkDir, "sstable_"+id.String())
+	return path.Join(GlobalConfig.WorkDir, "sstable_"+id.String())
 }
 
 func LogFileName(id id.Id) string {
-	return path.Join(WorkDir, "memtable_"+id.String()+"_logFile")
+	return path.Join(GlobalConfig.WorkDir, "memtable_"+id.String()+"_logFile")
 }

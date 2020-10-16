@@ -2,18 +2,6 @@ package snapshot
 
 import "github.com/PatchouliG/wisckey-db/id"
 
-//func NewTransactionIdGenerator(start int) chan Id {
-//	res := make(chan Id)
-//	go func() {
-//		current := Id{i: int64(start)}
-//		for {
-//			res <- current
-//			current = current.next()
-//		}
-//	}()
-//	return res
-//}
-
 var idGenerator *id.Generator
 
 type Id struct {

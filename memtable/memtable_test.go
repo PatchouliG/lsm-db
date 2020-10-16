@@ -4,9 +4,7 @@ import (
 	"github.com/PatchouliG/wisckey-db/gloablConfig"
 	"github.com/PatchouliG/wisckey-db/record"
 	"github.com/PatchouliG/wisckey-db/snapshot"
-	"github.com/PatchouliG/wisckey-db/storage/sstable"
 	"github.com/stretchr/testify/assert"
-	"io/ioutil"
 	"math/rand"
 	"strconv"
 	"testing"
@@ -15,22 +13,13 @@ import (
 var sg chan snapshot.Id
 
 func init() {
+	gloablConfig.UseTestConfig()
 	sg = make(chan snapshot.Id)
-	snapshot.SetStartId(0)
 	go func() {
 		for {
 			sg <- snapshot.NextId()
 		}
 	}()
-
-	dir, err := ioutil.TempDir("", "memtable")
-	if err != nil {
-		panic("create tmp dir err")
-	}
-	gloablConfig.WorkDir = dir
-
-	sstable.SetConfig(sstable.Config{})
-	SetConfig(Config{0})
 }
 
 func TestMemtableBasic(t *testing.T) {
