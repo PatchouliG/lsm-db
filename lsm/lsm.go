@@ -1,9 +1,9 @@
 package lsm
 
 import (
-	"github.com/PatchouliG/wisckey-db/memtable"
-	"github.com/PatchouliG/wisckey-db/record"
-	"github.com/PatchouliG/wisckey-db/transaction"
+	"github.com/PatchouliG/lsm-db/memtable"
+	"github.com/PatchouliG/lsm-db/record"
+	"github.com/PatchouliG/lsm-db/transaction"
 )
 
 // when sstable write fail (log file size limit)

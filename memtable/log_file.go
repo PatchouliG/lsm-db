@@ -1,8 +1,8 @@
 package memtable
 
 import (
-	"github.com/PatchouliG/wisckey-db/record"
-	"github.com/PatchouliG/wisckey-db/storage/block"
+	"github.com/PatchouliG/lsm-db/record"
+	"github.com/PatchouliG/lsm-db/storage/block"
 	log "github.com/sirupsen/logrus"
 	"os"
 )

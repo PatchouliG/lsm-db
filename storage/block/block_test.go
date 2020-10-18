@@ -1,7 +1,7 @@
 package block
 
 import (
-	"github.com/PatchouliG/wisckey-db/record"
+	"github.com/PatchouliG/lsm-db/record"
 	"github.com/stretchr/testify/assert"
 	"testing"
 )

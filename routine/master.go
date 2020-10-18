@@ -1,6 +1,6 @@
 package routine
 
-import "github.com/PatchouliG/wisckey-db/metadata"
+import "github.com/PatchouliG/lsm-db/metadata"
 
 func initDB() {
 

@@ -1,6 +1,6 @@
 package main
 
-import "github.com/PatchouliG/wisckey-db/routine"
+import "github.com/PatchouliG/lsm-db/routine"
 
 func Init() {
 	//	todo set log config

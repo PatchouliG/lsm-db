@@ -1,7 +1,7 @@
 package lsm
 
 import (
-	"github.com/PatchouliG/wisckey-db/id"
+	"github.com/PatchouliG/lsm-db/id"
 )
 
 type config struct {

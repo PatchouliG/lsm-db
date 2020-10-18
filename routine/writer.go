@@ -2,7 +2,7 @@ package routine
 
 import (
 	"context"
-	"github.com/PatchouliG/wisckey-db/lsm"
+	"github.com/PatchouliG/lsm-db/lsm"
 )
 
 type WriteWorker struct {

@@ -2,7 +2,7 @@ package sstable
 
 import (
 	"container/heap"
-	"github.com/PatchouliG/wisckey-db/record"
+	"github.com/PatchouliG/lsm-db/record"
 	"log"
 )
 

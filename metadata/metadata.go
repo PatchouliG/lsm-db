@@ -1,7 +1,7 @@
 package metadata
 
 import (
-	"github.com/PatchouliG/wisckey-db/lsm"
+	"github.com/PatchouliG/lsm-db/lsm"
 	"os"
 )
 

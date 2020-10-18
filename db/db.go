@@ -1,8 +1,8 @@
 package db
 
 import (
-	"github.com/PatchouliG/wisckey-db/record"
-	"github.com/PatchouliG/wisckey-db/transaction"
+	"github.com/PatchouliG/lsm-db/record"
+	"github.com/PatchouliG/lsm-db/transaction"
 )
 
 type DB struct {

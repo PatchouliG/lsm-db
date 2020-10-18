@@ -1,6 +1,6 @@
 package transaction
 
-import "github.com/PatchouliG/wisckey-db/id"
+import "github.com/PatchouliG/lsm-db/id"
 
 var idGenerator *id.Generator
 

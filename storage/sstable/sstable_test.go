@@ -1,8 +1,8 @@
 package sstable
 
 import (
-	"github.com/PatchouliG/wisckey-db/gloablConfig"
-	"github.com/PatchouliG/wisckey-db/record"
+	"github.com/PatchouliG/lsm-db/gloablConfig"
+	"github.com/PatchouliG/lsm-db/record"
 	"github.com/stretchr/testify/assert"
 	"math/rand"
 	"sort"
