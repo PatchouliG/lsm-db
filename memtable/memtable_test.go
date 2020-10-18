@@ -1,9 +1,9 @@
 package memtable
 
 import (
-	"github.com/PatchouliG/wisckey-db/gloablConfig"
-	"github.com/PatchouliG/wisckey-db/record"
-	"github.com/PatchouliG/wisckey-db/transaction"
+	"github.com/PatchouliG/lsm-db/gloablConfig"
+	"github.com/PatchouliG/lsm-db/record"
+	"github.com/PatchouliG/lsm-db/transaction"
 	"github.com/stretchr/testify/assert"
 	"math/rand"
 	"strconv"

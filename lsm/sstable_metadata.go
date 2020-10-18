@@ -1,7 +1,7 @@
 package lsm
 
 import (
-	"github.com/PatchouliG/wisckey-db/record"
+	"github.com/PatchouliG/lsm-db/record"
 	"sort"
 )
 

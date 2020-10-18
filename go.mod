@@ -1,4 +1,4 @@
-module github.com/PatchouliG/wisckey-db
+module github.com/PatchouliG/lsm-db
 
 go 1.15
 

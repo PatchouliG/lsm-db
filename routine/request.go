@@ -1,6 +1,6 @@
 package routine
 
-import "github.com/PatchouliG/wisckey-db/record"
+import "github.com/PatchouliG/lsm-db/record"
 
 // get,delete,put readRequest
 // handle by work routine

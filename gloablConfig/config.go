@@ -1,7 +1,7 @@
 package gloablConfig
 
 import (
-	"github.com/PatchouliG/wisckey-db/id"
+	"github.com/PatchouliG/lsm-db/id"
 	"io/ioutil"
 	"path"
 )

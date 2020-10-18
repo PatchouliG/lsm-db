@@ -1,6 +1,6 @@
 package db
 
-import "github.com/PatchouliG/wisckey-db/record"
+import "github.com/PatchouliG/lsm-db/record"
 
 type SnapshotDB struct {
 }

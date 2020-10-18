@@ -1,6 +1,6 @@
 package lsm
 
-import "github.com/PatchouliG/wisckey-db/id"
+import "github.com/PatchouliG/lsm-db/id"
 
 type sstableId struct {
 	id.Id
