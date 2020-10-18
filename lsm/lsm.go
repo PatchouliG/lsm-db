@@ -3,7 +3,7 @@ package lsm
 import (
 	"github.com/PatchouliG/wisckey-db/memtable"
 	"github.com/PatchouliG/wisckey-db/record"
-	"github.com/PatchouliG/wisckey-db/snapshot"
+	"github.com/PatchouliG/wisckey-db/transaction"
 )
 
 // when sstable write fail (log file size limit)
@@ -12,7 +12,7 @@ import (
 // 3. write the new record to new mutable memtable
 // 4. create write routine to save the old memtable to sstable
 // 5. when write finish,create new lsm (only new memtable and new sstables),update latest lsm
-// 6. discard old memtable, old sstable (if no snapshot)
+// 6. discard old memtable, old sstable (if no transaction)
 
 type levelInfo map[int][]sstableMetaData
 
@@ -30,7 +30,7 @@ type Lsm struct {
 type Snapshot struct {
 	// read only
 	*Lsm
-	id snapshot.Id
+	id transaction.Id
 }
 
 func NewLsm() *Lsm {

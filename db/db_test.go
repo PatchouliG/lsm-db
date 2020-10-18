@@ -2,7 +2,7 @@ package db
 
 import (
 	"github.com/PatchouliG/wisckey-db/record"
-	"github.com/PatchouliG/wisckey-db/snapshot"
+	"github.com/PatchouliG/wisckey-db/transaction"
 	"github.com/stretchr/testify/assert"
 	"io/ioutil"
 	"math/rand"
@@ -11,11 +11,11 @@ import (
 	"time"
 )
 
-// random Put ,get ,delete get with snapshot id
+// random Put ,get ,delete get with transaction id
 // make sure sstable level to 2 (100M)
 func TestNewDB(t *testing.T) {
 	// todo go on
-	//db, rol, maxKeyId := randomPutGetDelete(t, snapshot.NewTransactionIdGenerator(0))
+	//db, rol, maxKeyId := randomPutGetDelete(t, transaction.NewTransactionIdGenerator(0))
 }
 
 // todo restore memtable from log file
@@ -29,15 +29,15 @@ func TestOpenDBFromExitDBFiles(t *testing.T) {
 
 func TestDB_GetDBSnapshot(t *testing.T) {
 	//	1. insert random data to db
-	//	2. get snapshot
+	//	2. get transaction
 	//	3. change original db
-	//	4. get data from snapshot, won't change
+	//	4. get data from transaction, won't change
 	//	5. test range query
 }
 
 func TestDB_concurrent(t *testing.T) {
 	//	1. insert random data to db
-	//	2. create multiple go routine to do random operation to db, test read with snapshot id
+	//	2. create multiple go routine to do random operation to db, test read with transaction id
 }
 
 const (
@@ -67,11 +67,11 @@ func (rl *RecordOpLog) Put(op RecordOp) {
 type RecordOp struct {
 	data record.Record
 	op   string
-	id   snapshot.Id
+	id   transaction.Id
 }
 
 // return max id
-func randomPutGetDelete(t *testing.T, idc chan snapshot.Id) (*DB, *RecordOpLog, int) {
+func randomPutGetDelete(t *testing.T, idc chan transaction.Id) (*DB, *RecordOpLog, int) {
 	dirName, err := ioutil.TempDir("", "test_DB")
 	assert.Nil(t, err)
 

@@ -1,4 +1,4 @@
-package snapshot
+package transaction
 
 import (
 	"github.com/PatchouliG/wisckey-db/gloablConfig"

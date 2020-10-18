@@ -3,21 +3,21 @@ package memtable
 import (
 	"github.com/PatchouliG/wisckey-db/gloablConfig"
 	"github.com/PatchouliG/wisckey-db/record"
-	"github.com/PatchouliG/wisckey-db/snapshot"
+	"github.com/PatchouliG/wisckey-db/transaction"
 	"github.com/stretchr/testify/assert"
 	"math/rand"
 	"strconv"
 	"testing"
 )
 
-var sg chan snapshot.Id
+var sg chan transaction.Id
 
 func init() {
 	gloablConfig.UseTestConfig()
-	sg = make(chan snapshot.Id)
+	sg = make(chan transaction.Id)
 	go func() {
 		for {
-			sg <- snapshot.NextId()
+			sg <- transaction.NextId()
 		}
 	}()
 }
@@ -82,7 +82,7 @@ func TestSnapshotOperation(t *testing.T) {
 	assert.True(t, ok)
 	assert.Equal(t, b, res)
 
-	// test old snapshot id
+	// test old transaction id
 	_, ok = mt.GetWithSnapshot(b.Key(), oldId)
 	assert.False(t, ok)
 
@@ -90,7 +90,7 @@ func TestSnapshotOperation(t *testing.T) {
 	_, ok = mt.GetWithSnapshot(record.NewKey("not exits"), <-sg)
 	assert.False(t, ok)
 
-	//	test delete and get snapshot
+	//	test delete and get transaction
 	mt.Delete(b.Key(), <-sg)
 	res, ok = mt.GetWithSnapshot(b.Key(), b.Id)
 	assert.True(t, ok)
