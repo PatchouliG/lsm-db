@@ -3,8 +3,8 @@ package memtable
 import (
 	"github.com/PatchouliG/wisckey-db/gloablConfig"
 	"github.com/PatchouliG/wisckey-db/record"
-	"github.com/PatchouliG/wisckey-db/snapshot"
 	"github.com/PatchouliG/wisckey-db/storage/sstable"
+	"github.com/PatchouliG/wisckey-db/transaction"
 	log "github.com/sirupsen/logrus"
 	"os"
 	"sort"
@@ -13,10 +13,10 @@ import (
 
 type RecordWithTransaction struct {
 	record.Record
-	snapshot.Id
+	transaction.Id
 }
 
-func NewRecordWithTransaction(r record.Record, id snapshot.Id) RecordWithTransaction {
+func NewRecordWithTransaction(r record.Record, id transaction.Id) RecordWithTransaction {
 	return RecordWithTransaction{r, id}
 }
 
@@ -75,7 +75,7 @@ func (mt *Memtable) Get(key record.Key) (RecordWithTransaction, bool) {
 	return res, true
 }
 
-func (mt *Memtable) GetWithSnapshot(key record.Key, id snapshot.Id) (res RecordWithTransaction, found bool) {
+func (mt *Memtable) GetWithSnapshot(key record.Key, id transaction.Id) (res RecordWithTransaction, found bool) {
 	rst, ok := mt.m.Load(key)
 	if !ok {
 		found = false
@@ -98,7 +98,7 @@ func (mt *Memtable) GetWithSnapshot(key record.Key, id snapshot.Id) (res RecordW
 }
 
 // false if not found
-func (mt *Memtable) Delete(key record.Key, id snapshot.Id) bool {
+func (mt *Memtable) Delete(key record.Key, id transaction.Id) bool {
 	rst, ok := mt.m.Load(key)
 	if !ok {
 		return false

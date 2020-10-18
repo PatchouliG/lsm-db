@@ -2,7 +2,7 @@ package db
 
 import (
 	"github.com/PatchouliG/wisckey-db/record"
-	"github.com/PatchouliG/wisckey-db/snapshot"
+	"github.com/PatchouliG/wisckey-db/transaction"
 )
 
 type DB struct {
@@ -18,16 +18,16 @@ func (db *DB) close() {
 func (db *DB) Get(key record.Key) (record.Record, bool) {
 	panic("")
 }
-func (db *DB) GetDBSnapshot(r record.Record, id snapshot.Id) (*SnapshotDB, error) {
+func (db *DB) GetDBSnapshot(r record.Record, id transaction.Id) (*SnapshotDB, error) {
 	panic("")
 }
 
-func (db *DB) Put(r record.Record, id snapshot.Id) {
+func (db *DB) Put(r record.Record, id transaction.Id) {
 	panic("")
 }
 
 // delete multiple is ok
 // todo need test delete multiple
-func (db *DB) Delete(k record.Key, id snapshot.Id) {
+func (db *DB) Delete(k record.Key, id transaction.Id) {
 	panic("")
 }
