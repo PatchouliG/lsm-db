@@ -64,6 +64,9 @@ func NewReader(id Id) *Reader {
 	return &res
 }
 
+func (r *Reader) Id() Id {
+	return r.id
+}
 func (r *Reader) Reset() {
 	r.position = 0
 	_, err := r.file.Seek(0, 0)
@@ -106,13 +109,13 @@ func (r *Reader) Next() (record.Record, bool) {
 // todo add record block cache
 // false if not find
 func (r *Reader) findBlockMayContain(key record.Key) (block.Reader, bool) {
-	res := searchKey(r.firstKey, key)
-	if res == len(r.firstKey) || res == 0 {
+	position := searchKey(r.firstKey, key)
+	if position == 0 {
 		return block.Reader{}, false
 	}
 
 	data := make([]byte, block.DataBlockSizeInByte)
-	_, err := r.file.ReadAt(data, int64(block.DataBlockSizeInByte*(res-1)))
+	_, err := r.file.ReadAt(data, int64(block.DataBlockSizeInByte*(position-1)))
 	if err != nil {
 		log.WithField("err", err).
 			Panicf("read file %s fail", r.file.Name())
@@ -148,6 +151,7 @@ func (r *Reader) fileName() string {
 }
 
 // return len(keys) if not found
+// find first block all keys bigger then search key
 func searchKey(keys []record.Key, k record.Key) int {
 	return sort.Search(len(keys), func(i int) bool {
 		return keys[i].Value() > k.Value()

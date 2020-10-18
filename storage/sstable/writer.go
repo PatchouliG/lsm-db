@@ -16,7 +16,7 @@ type Writer struct {
 	bw              *block.Writer
 }
 
-func NewSStableWriter() (*Writer, error) {
+func NewWriter() (*Writer, error) {
 	res := Writer{}
 	id := NextId()
 	fileName := gloablConfig.SStableName(id.Id)

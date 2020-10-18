@@ -13,6 +13,17 @@ import (
 func init() {
 	gloablConfig.UseTestConfig()
 }
+func TestSstableSingleWriteAndFind(t *testing.T) {
+	sstw, err := NewWriter()
+	assert.Nil(t, err)
+	sstw.Write(record.NewRecordStr("a", "a"))
+	sstw.FlushToFile()
+
+	sstr := NewReader(sstw.id)
+	_, ok := sstr.Find(record.NewKey("a"))
+	assert.True(t, ok)
+
+}
 func TestSstableWriteAndFind(t *testing.T) {
 	id, err := createSStable(t)
 	assert.Nil(t, err)
@@ -63,7 +74,7 @@ func TestOrderAfterCompaction(t *testing.T) {
 	sumOfCompactionOutput := 0
 
 	for _, f := range res {
-		sumOfCompactionOutput += checkOrder(t, f.Reader)
+		sumOfCompactionOutput += CheckOrder(t, f.Reader)
 	}
 	assert.Equal(t, sum, sumOfCompactionOutput)
 }
@@ -71,7 +82,7 @@ func TestOrderAfterCompaction(t *testing.T) {
 // key range: odd number from 10000000000
 func createSStable(t *testing.T) (Id, error) {
 	// build sstable file
-	sstw, err := NewSStableWriter()
+	sstw, err := NewWriter()
 	assert.Nil(t, err)
 
 	blockCount := 10000000000
@@ -118,7 +129,7 @@ func checkKV(t *testing.T, sstr *Reader) {
 // return full sstable and record count
 func generateOrderedSStableFile(t *testing.T, startKeyFirstLetter int, endKeyFirstLetter int) (*Reader, int) {
 
-	sstw, err := NewSStableWriter()
+	sstw, err := NewWriter()
 	assert.Nil(t, err)
 
 	var keys []string
@@ -144,7 +155,7 @@ func generateOrderedSStableFile(t *testing.T, startKeyFirstLetter int, endKeyFir
 }
 
 // return record number
-func checkOrder(t *testing.T, r *Reader) int {
+func CheckOrder(t *testing.T, r *Reader) int {
 	var lastRecord *record.Record = nil
 	count := 0
 	for {

@@ -78,7 +78,7 @@ func flush(sstw *Writer) {
 }
 
 func getSStw() *Writer {
-	sstw, err := NewSStableWriter()
+	sstw, err := NewWriter()
 	if err != nil {
 		log.Panic("create new sstable file error ", err)
 	}
