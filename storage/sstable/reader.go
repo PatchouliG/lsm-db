@@ -1,7 +1,6 @@
 package sstable
 
 import (
-	"github.com/PatchouliG/lsm-db/gloablConfig"
 	"github.com/PatchouliG/lsm-db/record"
 	"github.com/PatchouliG/lsm-db/storage/block"
 	log "github.com/sirupsen/logrus"
@@ -32,18 +31,15 @@ type Reader struct {
 	rr       *record.Reader
 }
 
+var fileCache = newFileHandlerCache()
+
 func NewReader(id Id) *Reader {
 	res := Reader{}
 	res.id = id
 	// empty reader
 	res.rr = &record.Reader{}
 
-	fileName := gloablConfig.SStableName(id.Id)
-	f, err := os.OpenFile(fileName, os.O_RDONLY, 0600)
-	if err != nil {
-		log.Panic("open sstable fail ", err)
-	}
-	res.file = f
+	res.file = fileCache.get(id)
 	// build key index
 	data := make([]byte, block.DataBlockSizeInByte)
 	n, err := res.file.ReadAt(data, metaDataOffset)
@@ -131,7 +127,7 @@ func (r *Reader) nextBlock() (block.Reader, bool) {
 		return block.Reader{}, false
 	}
 	data := make([]byte, block.DataBlockSizeInByte)
-	n, err := r.file.Read(data)
+	n, err := r.file.ReadAt(data, int64(r.position*block.DataBlockSizeInByte))
 
 	r.position += 1
 
