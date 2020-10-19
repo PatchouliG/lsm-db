@@ -2,19 +2,29 @@ package lsm
 
 import (
 	"github.com/PatchouliG/lsm-db/record"
-	"sort"
+	"github.com/PatchouliG/lsm-db/storage/sstable"
+	log "github.com/sirupsen/logrus"
 )
 
 // own by lsm
 type sstableMetaData struct {
-	id       sstableId
+	id       sstable.Id
 	startKey record.Key
 	endKey   record.Key
+	// todo remove
 	refCount int
 }
 
-func newSStableMetaData(id sstableId, startKey record.Key, endKey record.Key) sstableMetaData {
-	return sstableMetaData{id, startKey, endKey, 1}
+func newSStableMetaDataFromReader(keyRange *sstable.ReaderWithKeyRange) *sstableMetaData {
+	return newSStableMetaData(keyRange.Id(), keyRange.StartKey, keyRange.EndKey)
+}
+
+func newSStableMetaData(id sstable.Id, startKey record.Key, endKey record.Key) *sstableMetaData {
+	if startKey.Value() > endKey.Value() {
+		log.WithField("start key", startKey).WithField("end key", endKey).
+			Panic("sstable start key can't more than endkey")
+	}
+	return &sstableMetaData{id, startKey, endKey, 1}
 }
 
 // remove  sstable file if ref count is 0
@@ -28,10 +38,4 @@ func (sstm *sstableMetaData) decRef() {
 // todo use for gc
 func (sstm *sstableMetaData) deleteSStable() {
 	panic("")
-}
-
-func sortMetadata(sstms []sstableMetaData) {
-	sort.Slice(sstms, func(i, j int) bool {
-		return sstms[i].startKey.Value() < sstms[j].startKey.Value()
-	})
 }

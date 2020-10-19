@@ -11,6 +11,7 @@ var GlobalConfig Config
 type Config struct {
 	SStableStartId  int64
 	MemtableStartId int64
+	LsmStartId      int64
 	SnapshotId      int64
 	WorkDir         string
 }
@@ -21,7 +22,7 @@ func UseTestConfig() {
 		panic(err)
 	}
 
-	GlobalConfig = Config{0, 0, 0, dir}
+	GlobalConfig = Config{0, 0, 0, 0, dir}
 }
 
 func SStableName(id id.Id) string {

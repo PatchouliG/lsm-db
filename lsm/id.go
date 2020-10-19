@@ -2,16 +2,7 @@ package lsm
 
 import "github.com/PatchouliG/lsm-db/id"
 
-type sstableId struct {
-	id.Id
-}
-
-var sstableIdGenerator *id.Generator
-
-func NextSSTableId() sstableId {
-	return sstableId{sstableIdGenerator.Next()}
-}
-
+// for snapshot
 type Id struct {
 	id.Id
 }

@@ -54,7 +54,8 @@ func BuildSStable(ris []record.Iterator) []*ReaderWithKeyRange {
 				log.Panic("write empty sstable file fail")
 			}
 			// write to a new sstable success, update start key to empty
-			startKey = record.Key{}
+			// todo fix start key add new issue with this line
+			startKey = r.Key()
 		}
 		// write success update last write key
 		lastWriteKey = r.Key()
