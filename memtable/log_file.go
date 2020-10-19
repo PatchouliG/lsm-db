@@ -13,8 +13,9 @@ const logFileSizeLimit = 4 * 1024 * 1024
 // log file for memtable
 // block *N
 type logFileWriter struct {
-	rw *record.Writer
-	f  *os.File
+	rw       *record.Writer
+	f        *os.File
+	isClosed bool
 	// current block number write to file
 	blockNumberWritten int
 }
@@ -25,11 +26,15 @@ func NewLogFileWriter(fileName string) *logFileWriter {
 		log.WithField("err", err).
 			Panic("create fileName for log fileName fail")
 	}
-	return &logFileWriter{record.NewWriter(), f, 0}
+	return &logFileWriter{record.NewWriter(), f, false, 0}
 }
 
 // false if no space
 func (l *logFileWriter) Write(r record.Record) bool {
+	// already close the log file, can't write any more
+	if l.isClosed {
+		return false
+	}
 	data := r.Encode()
 	if l.rw.Len()+len(data) >= block.MaxBlockSize() {
 		l.writeOneBlockDataToFile()
@@ -39,10 +44,13 @@ func (l *logFileWriter) Write(r record.Record) bool {
 			if err != nil {
 				log.WithField("err", err).Panic("file sync fail")
 			}
+
+			l.isClosed = true
 			err = l.f.Close()
 			if err != nil {
 				log.WithField("err", err).Panic("close file fail")
 			}
+
 			return false
 		}
 

@@ -6,6 +6,7 @@ import (
 )
 
 type ReadWorker struct {
+	// todo
 	lsm          *lsm.Lsm
 	requestChan  chan readRequest
 	responseChan chan ReadResponse

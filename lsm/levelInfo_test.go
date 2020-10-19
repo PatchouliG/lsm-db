@@ -140,22 +140,22 @@ func TestPopSStablesOverLap(t *testing.T) {
 func TestSStableOverlap(t *testing.T) {
 	a := newSStableMetaData(sstable.NextId(), record.NewKey("1"), record.NewKey("3"))
 	b := newSStableMetaData(sstable.NextId(), record.NewKey("4"), record.NewKey("8"))
-	res := sstableOverLap(a, b)
+	res := sstableOverlap(a, b)
 	assert.False(t, res)
 
 	a = newSStableMetaData(sstable.NextId(), record.NewKey("8"), record.NewKey("9"))
 	b = newSStableMetaData(sstable.NextId(), record.NewKey("2"), record.NewKey("3"))
-	res = sstableOverLap(a, b)
+	res = sstableOverlap(a, b)
 	assert.False(t, res)
 
 	a = newSStableMetaData(sstable.NextId(), record.NewKey("1"), record.NewKey("3"))
 	b = newSStableMetaData(sstable.NextId(), record.NewKey("3"), record.NewKey("8"))
-	res = sstableOverLap(a, b)
+	res = sstableOverlap(a, b)
 	assert.True(t, res)
 
 	a = newSStableMetaData(sstable.NextId(), record.NewKey("4"), record.NewKey("9"))
 	b = newSStableMetaData(sstable.NextId(), record.NewKey("2"), record.NewKey("5"))
-	res = sstableOverLap(a, b)
+	res = sstableOverlap(a, b)
 	assert.True(t, res)
 
 }

@@ -34,6 +34,7 @@ type Reader struct {
 
 func NewReader(id Id) *Reader {
 	res := Reader{}
+	res.id = id
 	// empty reader
 	res.rr = &record.Reader{}
 

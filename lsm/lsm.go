@@ -1,83 +1,94 @@
 package lsm
 
 import (
-	"github.com/PatchouliG/lsm-db/memtable"
 	"github.com/PatchouliG/lsm-db/record"
 	"github.com/PatchouliG/lsm-db/transaction"
+	"log"
+	"sync"
 )
 
-// when sstable write fail (log file size limit)
-// 1. create new lsm with two memtable,mutable(new) and immutable(old)
-// 2. use the new lsm as latest lsm
-// 3. write the new record to new mutable memtable
-// 4. create write routine to save the old memtable to sstable
-// 5. when write finish,create new lsm (only new memtable and new sstables),update latest lsm
-// 6. discard old memtable, old sstable (if no transaction)
+const lsmOneMemtable = "lsmOneMemtable"
 
-type levelInfo map[int][]sstableMetaData
+// when flush memtable is in process
+const lsmTwoMemtable = "lsmTwoMemtable"
 
+// thread safe struct
 type Lsm struct {
-	id Id
-	// level -> sstable metadata
-	levelInfo levelInfo
-
-	// handle write opertion(put delete)
-	mutableMemtable *memtable.Memtable
-	// not nil if the background write memtable to sstable is in progress
-	immutableMemtable *memtable.Memtable
-}
-
-type Snapshot struct {
-	// read only
-	*Lsm
-	id transaction.Id
+	*oneMemtable
+	*twoMemtable
+	status string
+	lock   sync.Mutex
 }
 
 func NewLsm() *Lsm {
-	// todo
-	panic("")
+	return &Lsm{NewOneMemtable(), nil, lsmOneMemtable, sync.Mutex{}}
 }
 
-func (l *Lsm) NewSnapshot() *Snapshot {
-	panic("")
-}
-
-// ture if exits
-// todo two memtable may exits
+// false if is deleted
 func (l *Lsm) Get(key record.Key) (record.Record, bool) {
-	//todo
-	panic("")
+	l.lock.Lock()
+	defer l.lock.Unlock()
+
+	switch l.status {
+	case lsmOneMemtable:
+		return l.oneMemtable.Get(key)
+	case lsmTwoMemtable:
+		return l.twoMemtable.Get(key)
+	}
+	log.Panic("lsm status match fail")
+	return record.Record{}, false
 }
 
-// work for put and delete
-// false if memtable write fail(log file size reaches limit)
+// return false if memtable is full and flush is in progress
+func (l *Lsm) Put(r record.Record, id transaction.Id) bool {
+	l.lock.Lock()
+	defer l.lock.Unlock()
 
-// own by routine and metadata
-func (l *Lsm) AddRecord(r record.Record) bool {
-	panic("")
+	switch l.status {
+	case lsmOneMemtable:
+		if ok := l.oneMemtable.PutRecord(r, id); ok {
+			return true
+		}
+		lfc, tw := l.oneMemtable.newLsmForCompaction()
+		l.status = lsmTwoMemtable
+		l.oneMemtable = nil
+		l.twoMemtable = tw
+		go func(lfc *lsmForCompaction) {
+			li := lfc.FlushMemtable()
+			// update to one memtable
+			l.flushMemtableFinish(li)
+			//return l.oneMemtable.PutRecord(r,id)
+		}(lfc)
+		return l.twoMemtable.PutRecord(r, id)
+
+	case lsmTwoMemtable:
+		return l.twoMemtable.PutRecord(r, id)
+	}
+	log.Panic("lsm status match fail")
+	return false
+}
+func (l *Lsm) levelHeight() int {
+	switch l.status {
+	case lsmOneMemtable:
+		return l.oneMemtable.levelInfo.height()
+	case lsmTwoMemtable:
+		return l.twoMemtable.levelInfo.height()
+	}
+	log.Panic("lsm status match fail")
+	return 0
 }
 
-// return a lsm, contains all info in old lsm an old memtable, and a new memtable
-func (l *Lsm) newLsmWithEmptyMemtable() *Lsm {
-	panic("")
+func (l *Lsm) flushMemtableFinish(info *levelInfo) {
+	l.lock.Lock()
+	defer l.lock.Unlock()
+
+	om := l.twoMemtable.oneMemtable(info)
+	l.status = lsmOneMemtable
+	l.twoMemtable = nil
+	l.oneMemtable = om
 }
 
-// use old lsm memtable and level info pass
-func (l *Lsm) newLsmWithLeveInfo(info levelInfo) *Lsm {
+// todo
+func (l *Lsm) ToSnapshot(key record.Key) *Snapshot {
 	panic("")
 }
-
-// write memtable to level 0,may cause other compaction to produce new sstable
-// return sstable metadata in every level
-func (l *Lsm) compact() levelInfo {
-	panic("")
-}
-
-//type DB interface {
-//	return until flush to disk
-//Put(key string, value string) error
-//Get(Key string) (value string, exit bool, err error)
-//Delete(Key string) error
-//Close() error
-//}
-//

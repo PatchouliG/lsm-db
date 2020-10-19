@@ -1,7 +1,5 @@
 package routine
 
-import "github.com/PatchouliG/lsm-db/lsm"
-
 // get,delete,put ReadResponse
 // return by work routine
 type ReadResponse struct {
@@ -9,5 +7,5 @@ type ReadResponse struct {
 
 type WriteResponse struct {
 	//	return new lsm if build new sstable
-	newLsm *lsm.Lsm
+	//newLsm *lsm.Lsm
 }

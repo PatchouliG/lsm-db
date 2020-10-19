@@ -15,6 +15,7 @@ type levelInfo struct {
 func newLevelInfo() *levelInfo {
 	return &levelInfo{make(map[int][]*sstableMetaData), rand.New(rand.NewSource(0))}
 }
+
 func (l *levelInfo) get(key record.Key) (record.Record, bool) {
 	for level := 0; ; level++ {
 
@@ -66,18 +67,18 @@ func (l *levelInfo) popSStableOverlap(levelNumber int, sstmd []*sstableMetaData)
 
 	for sstablesInLevelIndex := 0; sstablesInLevelIndex < len(sstablesInLevel); sstablesInLevelIndex++ {
 		for j := 0; j < len(sstmd); j++ {
-			if sstableOverLap(sstablesInLevel[sstablesInLevelIndex], sstmd[j]) {
+			if sstableOverlap(sstablesInLevel[sstablesInLevelIndex], sstmd[j]) {
 				overlapSStables[sstablesInLevelIndex] = struct{}{}
 			}
 		}
 	}
 	var res, remain []*sstableMetaData
 
-	for position, sstable := range sstablesInLevel {
+	for position, sstableMetadata := range sstablesInLevel {
 		if _, ok := overlapSStables[position]; ok {
 			res = append(res, sstablesInLevel[position])
 		} else {
-			remain = append(remain, sstable)
+			remain = append(remain, sstableMetadata)
 		}
 	}
 
@@ -87,7 +88,7 @@ func (l *levelInfo) popSStableOverlap(levelNumber int, sstmd []*sstableMetaData)
 	return res
 }
 
-func sstableOverLap(a *sstableMetaData, b *sstableMetaData) bool {
+func sstableOverlap(a *sstableMetaData, b *sstableMetaData) bool {
 	return !(a.endKey.Value() < b.startKey.Value() || a.startKey.Value() > b.endKey.Value())
 }
 
@@ -161,13 +162,22 @@ func (l *levelInfo) sort(levelInfo []*sstableMetaData) {
 	})
 }
 
+// -1 if no sstable
+func (l *levelInfo) height() int {
+	for i := 0; ; i++ {
+		if len(l.levels[i]) == 0 {
+			return i - 1
+		}
+	}
+}
+
 func (l *levelInfo) clone() *levelInfo {
 	res := newLevelInfo()
 
 	for levelNumber, sstables := range l.levels {
 		var sstablesCloned []*sstableMetaData
-		for _, sstable := range sstables {
-			sstablesCloned = append(sstablesCloned, sstable)
+		for _, sstableMetadata := range sstables {
+			sstablesCloned = append(sstablesCloned, sstableMetadata)
 		}
 		res.levels[levelNumber] = sstablesCloned
 	}
