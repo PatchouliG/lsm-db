@@ -53,8 +53,9 @@ func TestMemtableBasic(t *testing.T) {
 	ok = mt.Delete(a.Key(), <-sg)
 	assert.True(t, ok)
 
-	_, ok = mt.Get(a.Key())
-	assert.False(t, ok)
+	res, ok = mt.Get(a.Key())
+	assert.True(t, ok)
+	assert.True(t, res.IsDeleted())
 
 	err := mt.Discard()
 	assert.Nil(t, err)
@@ -96,8 +97,9 @@ func TestSnapshotOperation(t *testing.T) {
 	assert.True(t, ok)
 	assert.Equal(t, b, res)
 
-	_, ok = mt.GetWithSnapshot(b.Key(), <-sg)
-	assert.False(t, ok)
+	res, ok = mt.GetWithSnapshot(b.Key(), <-sg)
+	assert.True(t, ok)
+	assert.True(t, res.IsDeleted())
 
 	err := mt.Discard()
 	assert.Nil(t, err)

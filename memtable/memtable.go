@@ -69,9 +69,6 @@ func (mt *Memtable) Get(key record.Key) (RecordWithTransaction, bool) {
 	}
 	rst := rs.([]RecordWithTransaction)
 	res := rst[len(rst)-1]
-	if res.IsDeleted() {
-		return RecordWithTransaction{}, false
-	}
 	return res, true
 }
 
@@ -86,10 +83,6 @@ func (mt *Memtable) GetWithSnapshot(key record.Key, id transaction.Id) (res Reco
 		r := rs[i]
 		if r.Id.Cmp(id) > 0 {
 			continue
-		}
-		if r.IsDeleted() {
-			found = false
-			return
 		}
 		return r, true
 	}
